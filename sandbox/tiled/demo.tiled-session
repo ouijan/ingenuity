@@ -1,0 +1,30 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
+    "expandedProjectPaths": [
+        ".",
+        "maps"
+    ],
+    "fileStates": {
+        "maps/demo-map.tmx": {
+            "scale": 0.7758333333333333,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 395.70354457572506,
+                "y": 408.59291084855
+            }
+        }
+    },
+    "last.objectTemplatePath": "/Users/tobyharris/code/github.com/ouijan/aether-engine/demo/tiled/templates",
+    "map.lastUsedFormat": "tmx",
+    "openFiles": [
+    ],
+    "project": "demo.tiled-project",
+    "property.type": "object",
+    "recentFiles": [
+        "maps/demo-map.tmx"
+    ]
+}
