@@ -19,7 +19,7 @@ func Run() {
 
 	for !rl.WindowShouldClose() {
 		Scene.Update()
-		Systems.Update(World)
+		Systems.Update(CurrentWorld)
 		render()
 	}
 }
@@ -67,7 +67,7 @@ func attachEventLogger() {
 func render() {
 	// Establish list to render
 	tilemapLayerFilter := generic.NewFilter1[TilemapLayerComponent]()
-	tilemapLayerQuery := tilemapLayerFilter.Query(&World.ecs)
+	tilemapLayerQuery := tilemapLayerFilter.Query(&CurrentWorld.ecs)
 	renderCalls := make([]renderer.TilemapLayerRenderCall, 0)
 	for tilemapLayerQuery.Next() {
 		tilemapLayer := tilemapLayerQuery.Get()

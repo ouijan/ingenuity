@@ -2,8 +2,8 @@ package engine
 
 type IScene interface {
 	Load()
-	OnEnter(world *IWorld)
-	OnExit(world *IWorld)
+	OnEnter(world *World)
+	OnExit(world *World)
 }
 
 type SceneManager struct {
@@ -32,10 +32,10 @@ func (sm *SceneManager) Update() {
 func (sm *SceneManager) setActive(scene IScene) {
 	scene.Load()
 	if sm.active != nil {
-		sm.active.OnExit(World)
+		sm.active.OnExit(CurrentWorld)
 	}
-	World = NewWorld() // TODO: I don't like that this single is being overwritten in the global scope
-	scene.OnEnter(World)
+	CurrentWorld = NewWorld() // TODO: I don't like that this single is being overwritten in the global scope
+	scene.OnEnter(CurrentWorld)
 	sm.active = scene
 }
 

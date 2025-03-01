@@ -18,14 +18,14 @@ type TiledObjectComponent struct {
 	Object *tiled.Object
 }
 
-func AddTilemapToWorld(tilemap *resources.Tilemap, world *IWorld) {
+func AddTilemapToWorld(tilemap *resources.Tilemap, world *World) {
 	addTilemapLayersToWorld(world, tilemap, tilemap.Layers)
 	// addObjectGroupsToWorld(world, tilemap, ObjectGroups)
 	// addGroupsToWorld(world, tilemap, tilemap.Tilemap.Groups)
 	// renderer.LoadTilemapTextures(tilemap.Tilemap)
 }
 
-func addGroupsToWorld(world *IWorld, tilemap *resources.Tilemap, groups []*tiled.Group) {
+func addGroupsToWorld(world *World, tilemap *resources.Tilemap, groups []*tiled.Group) {
 	for _, group := range groups {
 		// addTilemapLayersToWorld(world, tilemap, group.Layers)
 		addObjectGroupsToWorld(world, group.ObjectGroups)
@@ -33,7 +33,7 @@ func addGroupsToWorld(world *IWorld, tilemap *resources.Tilemap, groups []*tiled
 	}
 }
 
-func addObjectGroupsToWorld(world *IWorld, groups []*tiled.ObjectGroup) {
+func addObjectGroupsToWorld(world *World, groups []*tiled.ObjectGroup) {
 	for _, group := range groups {
 		for _, obj := range group.Objects {
 			addObjectToWorld(world, obj)
@@ -42,7 +42,7 @@ func addObjectGroupsToWorld(world *IWorld, groups []*tiled.ObjectGroup) {
 }
 
 func addTilemapLayersToWorld(
-	world *IWorld,
+	world *World,
 	tilemap *resources.Tilemap,
 	layers []resources.TilemapLayer,
 ) {
@@ -51,7 +51,7 @@ func addTilemapLayersToWorld(
 	}
 }
 
-func addLayerToWorld(world *IWorld, tilemap *resources.Tilemap, layer resources.TilemapLayer) {
+func addLayerToWorld(world *World, tilemap *resources.Tilemap, layer resources.TilemapLayer) {
 	e := AddEntity(world)
 	AddComponent(world, e, &TilemapLayerComponent{
 		Layer: layer,
@@ -59,7 +59,7 @@ func addLayerToWorld(world *IWorld, tilemap *resources.Tilemap, layer resources.
 	})
 }
 
-func addObjectToWorld(world *IWorld, obj *tiled.Object) {
+func addObjectToWorld(world *World, obj *tiled.Object) {
 	e := AddEntity(world)
 	AddComponent(world, e, &TiledObjectComponent{Object: obj})
 }

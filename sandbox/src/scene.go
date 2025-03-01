@@ -18,12 +18,12 @@ func (scene *SandboxScene) Load() {
 	renderer.LoadTilemapTextures(*scene.tilemap)
 }
 
-func (scene *SandboxScene) OnEnter(world *engine.IWorld) {
+func (scene *SandboxScene) OnEnter(world *engine.World) {
 	Log.Info("Entering scene")
 	engine.AddTilemapToWorld(scene.tilemap, world)
 }
 
-func (scene *SandboxScene) OnExit(world *engine.IWorld) {
+func (scene *SandboxScene) OnExit(world *engine.World) {
 	Log.Info("Exiting scene")
 	renderer.TextureCache.ClearAll()
 }

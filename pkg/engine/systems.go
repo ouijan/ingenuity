@@ -5,7 +5,7 @@ import "github.com/ouijan/ingenuity/pkg/core"
 var Systems = NewSystemManager()
 
 type System interface {
-	Update(world *IWorld)
+	Update(world *World)
 }
 
 type SystemManager struct {
@@ -16,7 +16,7 @@ func (sm *SystemManager) Register(system System) {
 	sm.systems = append(sm.systems, system)
 }
 
-func (sm *SystemManager) Update(world *IWorld) {
+func (sm *SystemManager) Update(world *World) {
 	if world == nil {
 		core.Log.Error("World not set")
 		return

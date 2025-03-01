@@ -8,14 +8,14 @@ import (
 	"github.com/ouijan/ingenuity/pkg/core"
 )
 
-type IWorld struct {
+type World struct {
 	ecs ecs.World
 }
 
-func NewWorld() *IWorld {
+func NewWorld() *World {
 	ecsWorld := ecs.NewWorld()
 	ecsWorld.SetListener(newWorldEventProxy())
-	return &IWorld{
+	return &World{
 		ecs: ecsWorld,
 	}
 }
@@ -54,34 +54,34 @@ type ChildOf struct {
 // 	return newEntity(entity)
 // }
 
-func AddEntity(world *IWorld) Entity {
+func AddEntity(world *World) Entity {
 	return newEntity(world.ecs.NewEntity())
 }
 
-func RemoveEntity(world *IWorld, entity Entity) {
+func RemoveEntity(world *World, entity Entity) {
 	world.ecs.RemoveEntity(entity.entity)
 }
 
-func AddComponent[T Component](world *IWorld, entity Entity, component *T) {
+func AddComponent[T Component](world *World, entity Entity, component *T) {
 	mapper := generic.NewMap1[T](&world.ecs)
 	mapper.Assign(entity.entity, component)
 }
 
-func RemoveComponent[T Component](world *IWorld, entity Entity, component *T) {
+func RemoveComponent[T Component](world *World, entity Entity, component *T) {
 	mapper := generic.NewMap1[T](&world.ecs)
 	mapper.Remove(entity.entity)
 }
 
-func AddParent(world *IWorld, child Entity, parent Entity) {
+func AddParent(world *World, child Entity, parent Entity) {
 	AddComponent(world, child, &ChildOf{Parent: parent.entity})
 }
 
-func RemoveParent(world *IWorld, child Entity) {
+func RemoveParent(world *World, child Entity) {
 	RemoveComponent(world, child, &ChildOf{})
 }
 
-var World = NewWorld()
+var CurrentWorld = NewWorld()
 
-func DebugWorld(world *IWorld) {
+func DebugWorld(world *World) {
 	core.Log.Debug(fmt.Sprintf("World Stats: \n%s", world.ecs.Stats().String()))
 }
