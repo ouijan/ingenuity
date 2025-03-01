@@ -8,13 +8,13 @@ import (
 )
 
 var app = &cli.Command{
-	Name:                  "Aether CLI",
+	Name:                  "Ingenuity CLI",
 	EnableShellCompletion: true,
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:    "config",
 			Aliases: []string{"c"},
-			Value:   "aether.json",
+			Value:   "ingenuity.json",
 		},
 	},
 	Commands: []*cli.Command{

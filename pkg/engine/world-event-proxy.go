@@ -5,7 +5,7 @@ import (
 
 	"github.com/mlange-42/arche/ecs"
 	"github.com/mlange-42/arche/ecs/event"
-	"github.com/ouijan/aether/pkg/core"
+	"github.com/ouijan/ingenuity/pkg/core"
 )
 
 type worldEventProxy struct{}

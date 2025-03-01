@@ -1,6 +1,6 @@
 package engine
 
-import "github.com/ouijan/aether/pkg/core"
+import "github.com/ouijan/ingenuity/pkg/core"
 
 var Systems = NewSystemManager()
 

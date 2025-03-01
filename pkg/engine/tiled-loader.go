@@ -2,7 +2,7 @@ package engine
 
 import (
 	"github.com/lafriks/go-tiled"
-	"github.com/ouijan/aether/pkg/resources"
+	"github.com/ouijan/ingenuity/pkg/resources"
 )
 
 type TilemapRendererComponent struct {
@@ -10,8 +10,8 @@ type TilemapRendererComponent struct {
 }
 
 type TilemapLayerComponent struct {
-	Map   *tiled.Map
-	Layer *tiled.Layer
+	Map   *resources.Tilemap
+	Layer resources.TilemapLayer
 }
 
 type TiledObjectComponent struct {
@@ -19,15 +19,15 @@ type TiledObjectComponent struct {
 }
 
 func AddTilemapToWorld(tilemap *resources.Tilemap, world *IWorld) {
-	addTilemapLayersToWorld(world, tilemap.Tilemap, tilemap.Tilemap.Layers)
-	addObjectGroupsToWorld(world, tilemap.Tilemap.ObjectGroups)
-	addGroupsToWorld(world, tilemap.Tilemap, tilemap.Tilemap.Groups)
+	addTilemapLayersToWorld(world, tilemap, tilemap.Layers)
+	// addObjectGroupsToWorld(world, tilemap, ObjectGroups)
+	// addGroupsToWorld(world, tilemap, tilemap.Tilemap.Groups)
 	// renderer.LoadTilemapTextures(tilemap.Tilemap)
 }
 
-func addGroupsToWorld(world *IWorld, tilemap *tiled.Map, groups []*tiled.Group) {
+func addGroupsToWorld(world *IWorld, tilemap *resources.Tilemap, groups []*tiled.Group) {
 	for _, group := range groups {
-		addTilemapLayersToWorld(world, tilemap, group.Layers)
+		// addTilemapLayersToWorld(world, tilemap, group.Layers)
 		addObjectGroupsToWorld(world, group.ObjectGroups)
 		addGroupsToWorld(world, tilemap, group.Groups)
 	}
@@ -41,13 +41,17 @@ func addObjectGroupsToWorld(world *IWorld, groups []*tiled.ObjectGroup) {
 	}
 }
 
-func addTilemapLayersToWorld(world *IWorld, tilemap *tiled.Map, layers []*tiled.Layer) {
+func addTilemapLayersToWorld(
+	world *IWorld,
+	tilemap *resources.Tilemap,
+	layers []resources.TilemapLayer,
+) {
 	for _, layer := range layers {
 		addLayerToWorld(world, tilemap, layer)
 	}
 }
 
-func addLayerToWorld(world *IWorld, tilemap *tiled.Map, layer *tiled.Layer) {
+func addLayerToWorld(world *IWorld, tilemap *resources.Tilemap, layer resources.TilemapLayer) {
 	e := AddEntity(world)
 	AddComponent(world, e, &TilemapLayerComponent{
 		Layer: layer,

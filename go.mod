@@ -1,4 +1,4 @@
-module github.com/ouijan/aether
+module github.com/ouijan/ingenuity
 
 go 1.23.4
 

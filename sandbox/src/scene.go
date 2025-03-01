@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/ouijan/aether/pkg/engine"
-	"github.com/ouijan/aether/pkg/renderer"
-	"github.com/ouijan/aether/pkg/resources"
+	"github.com/ouijan/ingenuity/pkg/engine"
+	"github.com/ouijan/ingenuity/pkg/renderer"
+	"github.com/ouijan/ingenuity/pkg/resources"
 )
 
 type SandboxScene struct {

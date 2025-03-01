@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+var commentTag = "ingenuity"
+
 func parseSourceCode(sourcePath string) error {
 	fmt.Printf("Parsing Source Code from %s\n", sourcePath)
 	fset := token.NewFileSet()
@@ -40,8 +42,7 @@ func parseSourceCode(sourcePath string) error {
 }
 
 func handleGenDecl(decl *ast.GenDecl) {
-	aetherType := getAetherTypeFromDoc(decl.Doc)
-	switch aetherType {
+	switch getTypeFromDoc(decl.Doc) {
 	case "component":
 		handleComponent(decl)
 	case "enum":
@@ -130,14 +131,14 @@ func handleEnum(decl *ast.GenDecl) *TiledCustomEnum {
 	return &enum
 }
 
-func getAetherTypeFromDoc(doc *ast.CommentGroup) string {
+func getTypeFromDoc(doc *ast.CommentGroup) string {
 	if doc == nil {
 		return ""
 	}
 	for _, comment := range doc.List {
 		segments := parseComment(comment.Text)
 		if len(segments) >= 2 {
-			if segments[0] == "aether" {
+			if segments[0] == commentTag {
 				return segments[1]
 			}
 		}

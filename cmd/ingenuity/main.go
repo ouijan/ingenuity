@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/ouijan/aether/pkg/cli"
+	"github.com/ouijan/ingenuity/pkg/cli"
 )
 
 func main() {

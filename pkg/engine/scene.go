@@ -11,10 +11,6 @@ type SceneManager struct {
 	nextScene IScene
 }
 
-func (sm *SceneManager) Register(scene IScene) {
-	// Register scene
-}
-
 func (sm *SceneManager) Active() IScene {
 	return sm.active
 }

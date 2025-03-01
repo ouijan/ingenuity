@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ouijan/aether/pkg/engine"
+	"github.com/ouijan/ingenuity/pkg/engine"
 )
 
 type SandboxSystem struct{}

@@ -5,7 +5,7 @@ import (
 	"image"
 
 	"github.com/lafriks/go-tiled"
-	"github.com/ouijan/aether/pkg/core"
+	"github.com/ouijan/ingenuity/pkg/core"
 )
 
 // Tilemap

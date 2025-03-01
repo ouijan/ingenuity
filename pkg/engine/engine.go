@@ -6,8 +6,8 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/mlange-42/arche/ecs"
 	"github.com/mlange-42/arche/generic"
-	"github.com/ouijan/aether/pkg/core"
-	"github.com/ouijan/aether/pkg/renderer"
+	"github.com/ouijan/ingenuity/pkg/core"
+	"github.com/ouijan/ingenuity/pkg/renderer"
 )
 
 func Run() {

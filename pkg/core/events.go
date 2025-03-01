@@ -32,7 +32,15 @@ var em = event.NewManager("core")
 
 func OnEvent[T any](pattern string, cb func(Event[T]) error) {
 	em.On(pattern, event.ListenerFunc(func(evt event.Event) error {
-		casted, ok := evt.Data()["data"].(T)
+		data := evt.Data()
+		if data == nil {
+			return errors.New("Event data is nil")
+		}
+		value, ok := data["data"]
+		if !ok {
+			return errors.New("Event data does not contain 'data' key")
+		}
+		casted, ok := value.(T)
 		if !ok {
 			return errors.New("Event data is not of observed type " + pattern)
 		}

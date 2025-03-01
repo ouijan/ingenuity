@@ -1,6 +1,6 @@
 package main
 
-// Aether:Component
+// Ingenuity:Component
 type DemoComponent1 struct {
 	Name string
 	Age  int
@@ -8,14 +8,14 @@ type DemoComponent1 struct {
 
 type DemoCategory int
 
-// Aether:Enum
+// Ingenuity:Enum
 const (
 	FirstCategory DemoCategory = iota
 	SecondCategory
 	ThirdCategory
 )
 
-// Aether:Component
+// Ingenuity:Component
 type DemoComponent2 struct {
 	Category DemoCategory `json:"category"`
 }

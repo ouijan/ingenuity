@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"github.com/ouijan/aether/pkg/core"
+	"github.com/ouijan/ingenuity/pkg/core"
 )
 
 type textureCache struct {
@@ -22,7 +22,6 @@ func (tc *textureCache) Get(id string) (rl.Texture2D, bool) {
 func (tc *textureCache) Set(id string, texture rl.Texture2D) {
 	if _, ok := tc.cache[id]; ok {
 		core.Log.Warn(fmt.Sprintf("overriding texture in cache: %s", id))
-		return
 	}
 	tc.cache[id] = texture
 }

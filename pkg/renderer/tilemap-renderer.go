@@ -1,22 +1,25 @@
 package renderer
 
 import (
-	"fmt"
 	"image"
 	"strconv"
+	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
-	"github.com/lafriks/go-tiled"
-	"github.com/ouijan/aether/pkg/resources"
+	"github.com/ouijan/ingenuity/pkg/core"
+	"github.com/ouijan/ingenuity/pkg/resources"
 )
 
 type TilemapLayerRenderCall struct {
 	Layer resources.TilemapLayer
 }
 
-func NewTilemapLayerRenderCall(tilemap *tiled.Map, layer *tiled.Layer) TilemapLayerRenderCall {
+func NewTilemapLayerRenderCall(
+	tilemap *resources.Tilemap,
+	layer resources.TilemapLayer,
+) TilemapLayerRenderCall {
 	return TilemapLayerRenderCall{
-		Layer: resources.ToTilemapLayer(tilemap, layer),
+		Layer: layer,
 	}
 }
 
@@ -50,11 +53,7 @@ func renderTile(
 }
 
 func cacheId(segments ...string) string {
-	id := ""
-	for _, segment := range segments {
-		id = fmt.Sprintf("%s:%s", id, segment)
-	}
-	return id
+	return strings.Join(segments, ":")
 }
 
 func LoadTilemapTextures(tilemap resources.Tilemap) {
@@ -65,6 +64,10 @@ func LoadTilemapTextures(tilemap resources.Tilemap) {
 
 func LoadTilesetTextures(tileset resources.Tileset) {
 	tilesetImg := rl.LoadImage(tileset.ImgSrc)
+	if tilesetImg == nil {
+		core.Log.Error("Failed to load tileset image: " + tileset.ImgSrc)
+		return
+	}
 
 	for id := 0; id < tileset.TileCount; id++ {
 		tileImg := rl.ImageCopy(tilesetImg)
@@ -86,4 +89,16 @@ func toRaylibRect(rect image.Rectangle) rl.Rectangle {
 		float32(rect.Dx()),
 		float32(rect.Dy()),
 	)
+}
+
+func UnloadTilemapTextures(tilemap resources.Tilemap) {
+	for _, tileset := range tilemap.Tilesets {
+		for id := 0; id < tileset.TileCount; id++ {
+			cacheKey := cacheId(tileset.ID, strconv.Itoa(id))
+			if texture, ok := TextureCache.Get(cacheKey); ok {
+				rl.UnloadTexture(texture)
+				TextureCache.Clear(cacheKey)
+			}
+		}
+	}
 }

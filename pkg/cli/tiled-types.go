@@ -114,7 +114,10 @@ func readTiledProject(path string) (*TiledProject, error) {
 	}
 	project := TiledProject{}
 	decoder := json.NewDecoder(strings.NewReader(string(data)))
-	decoder.Decode(&project)
+	err = decoder.Decode(&project)
+	if err != nil {
+		return nil, err
+	}
 	return &project, err
 }
 

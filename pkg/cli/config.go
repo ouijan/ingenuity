@@ -16,7 +16,7 @@ type Config struct {
 
 func readConfig(configPath string) (Config, error) {
 	config := Config{
-		Name:         "NewAetherProject",
+		Name:         "NewIngenuityProject",
 		TiledProject: "tiled.tmx",
 		Src:          "src",
 	}
@@ -27,7 +27,10 @@ func readConfig(configPath string) (Config, error) {
 	}
 
 	decoder := json.NewDecoder(strings.NewReader(string(data)))
-	decoder.Decode(&config)
+	err = decoder.Decode(&config)
+	if err != nil {
+		return config, err
+	}
 
 	if config.TiledTypesOutput == "" {
 		config.TiledTypesOutput = path.Join(config.Src, "types")
