@@ -1,0 +1,108 @@
+{
+    "automappingRulesFile": "",
+    "commands": [
+        {
+            "arguments": "status",
+            "command": "git",
+            "enabled": true,
+            "name": "Sync",
+            "saveBeforeExecute": true,
+            "shortcut": "L, G",
+            "showOutput": true,
+            "workingDirectory": ""
+        }
+    ],
+    "extensionsPath": "extensions",
+    "folders": [
+        "."
+    ],
+    "properties": [
+        {
+            "name": "CreatedInEditor",
+            "propertytype": "",
+            "type": "int",
+            "value": 0
+        },
+        {
+            "name": "isMadeInEditor",
+            "propertytype": "",
+            "type": "bool",
+            "value": false
+        }
+    ],
+    "propertyTypes": [
+        {
+            "color": "#ff00fa92",
+            "drawFill": true,
+            "id": 2,
+            "members": [
+                {
+                    "name": "EditorType",
+                    "propertyType": "EditorEnum",
+                    "type": "string",
+                    "value": "Editor1"
+                },
+                {
+                    "name": "colorV",
+                    "type": "color",
+                    "value": "#ff942193"
+                },
+                {
+                    "name": "fileV",
+                    "type": "file",
+                    "value": "../ingenuity.json"
+                },
+                {
+                    "name": "floatV",
+                    "type": "float",
+                    "value": 0
+                },
+                {
+                    "name": "intV",
+                    "type": "int",
+                    "value": 0
+                },
+                {
+                    "name": "isDead",
+                    "type": "bool",
+                    "value": false
+                },
+                {
+                    "name": "name",
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "name": "objectV",
+                    "type": "object",
+                    "value": 0
+                }
+            ],
+            "name": "EditorClass",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        },
+        {
+            "id": 1,
+            "name": "EditorEnum",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "Editor1",
+                "Editor2",
+                "Editor3"
+            ],
+            "valuesAsFlags": false
+        }
+    ]
+}
