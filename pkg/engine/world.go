@@ -26,6 +26,10 @@ type Entity struct {
 	entity ecs.Entity
 }
 
+func (e *Entity) IsNull() bool {
+	return e.entity.IsZero()
+}
+
 func newEntity(entity ecs.Entity) Entity {
 	return Entity{
 		entity: entity,
@@ -70,6 +74,11 @@ func AddComponent[T Component](world *World, entity Entity, component *T) {
 func RemoveComponent[T Component](world *World, entity Entity, component *T) {
 	mapper := generic.NewMap1[T](&world.ecs)
 	mapper.Remove(entity.entity)
+}
+
+func GetComponent[T Component](world *World, entity Entity) *T {
+	mapper := generic.NewMap1[T](&world.ecs)
+	return mapper.Get(entity.entity)
 }
 
 func AddParent(world *World, child Entity, parent Entity) {

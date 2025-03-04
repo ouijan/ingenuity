@@ -2,6 +2,7 @@ package renderer
 
 import (
 	"fmt"
+	"strings"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/ouijan/ingenuity/pkg/core"
@@ -41,3 +42,7 @@ func NewTextureCache() textureCache {
 }
 
 var TextureCache = NewTextureCache()
+
+func cacheId(segments ...string) string {
+	return strings.Join(segments, ":")
+}

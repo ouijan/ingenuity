@@ -15,10 +15,12 @@ func Run() {
 	attachRaylibLogger(true)
 	attachEventLogger()
 
-	Window.Open(800, 450, "raylib [core] example - basic window")
+	// TODO: Pull these from config (or pass config in)
+	Window.Open(800, 450, "Ingenuity")
 
 	for !rl.WindowShouldClose() {
 		Scene.Update()
+		// Controllers.Update(CurrentWorld)
 		Systems.Update(CurrentWorld)
 		render()
 	}
@@ -65,38 +67,45 @@ func attachEventLogger() {
 }
 
 func render() {
+	renderCalls := make([]renderer.RenderCall, 0)
+
 	// Establish list to render
 	tilemapLayerFilter := generic.NewFilter1[TilemapLayerComponent]()
 	tilemapLayerQuery := tilemapLayerFilter.Query(&CurrentWorld.ecs)
-	renderCalls := make([]renderer.TilemapLayerRenderCall, 0)
 	for tilemapLayerQuery.Next() {
 		tilemapLayer := tilemapLayerQuery.Get()
 		renderCalls = append(
 			renderCalls,
-			renderer.NewTilemapLayerRenderCall(tilemapLayer.Map, tilemapLayer.Layer),
+			func() error {
+				return renderer.RenderTilemapLayer(tilemapLayer.Layer, 0, 0)
+			},
+		)
+	}
+
+	spriteFilter := generic.NewFilter2[SpriteRendererComponent, TransformComponent]()
+	spriteQuery := spriteFilter.Query(&CurrentWorld.ecs)
+	for spriteQuery.Next() {
+		sprite, transform := spriteQuery.Get()
+		renderCalls = append(
+			renderCalls,
+			func() error {
+				x, y := toScreenPosition(transform)
+				return renderer.RenderSprite(
+					sprite.SpriteSheet,
+					sprite.SpriteIndex,
+					x,
+					y,
+				)
+			},
 		)
 	}
 
 	// Cull things that are off screen
 	// Sort into render layers
-	// Sort items in layers
+	// Sort items within layers
+	renderer.Render(renderCalls, Window.CanvasWidth, Window.CanvasHeight)
+}
 
-	// Start Drawing
-	rl.BeginDrawing()
-	rl.ClearBackground(rl.RayWhite)
-
-	// Render layers
-	rl.DrawText("Congrats! You created your first window!", 190, 200, 20, rl.LightGray)
-
-	for _, renderCall := range renderCalls {
-		renderer.RenderTilemapLayer(renderCall)
-	}
-
-	// err := renderer.RenderImage()
-	// if err != nil {
-	// 	core.Log.Error(fmt.Sprintf("Error rendering image: %s", err.Error()))
-	// }
-
-	// End Drawing
-	rl.EndDrawing()
+func toScreenPosition(transform *TransformComponent) (int, int) {
+	return int(transform.X), int(transform.Y)
 }

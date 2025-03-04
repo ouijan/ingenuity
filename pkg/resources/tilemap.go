@@ -86,6 +86,16 @@ func (ts *Tileset) GetTileRect(id int) image.Rectangle {
 	)
 }
 
+func (ts *Tileset) GetSpriteSheet() *SpriteSheet {
+	sprites := SpritesFromGrid(
+		ts.TileWidth,
+		ts.TileHeight,
+		ts.TileCount/ts.Columns,
+		ts.Columns,
+	)
+	return NewSpriteSheet(ts.ID, ts.ImgSrc, sprites)
+}
+
 func ToTileset(tileset *tiled.Tileset) Tileset {
 	return Tileset{
 		ID:         tileset.Source,
@@ -124,4 +134,9 @@ func LoadTilemap(path string) *Tilemap {
 		Layers:   layers,
 		Tilesets: tilesets,
 	}
+}
+
+func LoadSpriteSheet(path string, spriteWidth, spriteHeight, rows, cols int) *SpriteSheet {
+	sprites := SpritesFromGrid(spriteWidth, spriteHeight, rows, cols)
+	return NewSpriteSheet(path, path, sprites)
 }
