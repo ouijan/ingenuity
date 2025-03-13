@@ -12,18 +12,20 @@ func NewWindowManager() *WindowManager {
 
 var Window = NewWindowManager()
 
-func (wm *WindowManager) Open(width, height int, title string) {
-	wm.SetCanvasSize(width, height)
-	rl.SetConfigFlags(rl.FlagWindowResizable)
-	rl.InitWindow(int32(width), int32(height), title)
+func (wm *WindowManager) Open(w, h int, title string) {
+	// rl.SetConfigFlags(rl.FlagWindowResizable | rl.FlagVsyncHint)
+	rl.InitWindow(int32(w), int32(h), title)
 	rl.SetTargetFPS(60)
+
+	wm.SetCanvasSize(w, h)
 }
 
 func (wm *WindowManager) Close() {
 	rl.CloseWindow()
 }
 
-func (wm *WindowManager) SetCanvasSize(width, height int) {
-	wm.CanvasWidth = width
-	wm.CanvasHeight = height
+func (wm *WindowManager) SetCanvasSize(w, h int) {
+	wm.CanvasWidth = w
+	wm.CanvasHeight = h
+	rl.SetWindowMinSize(w, h)
 }

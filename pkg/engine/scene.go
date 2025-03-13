@@ -34,7 +34,7 @@ func (sm *SceneManager) setActive(scene IScene) {
 	if sm.active != nil {
 		sm.active.OnExit(CurrentWorld)
 	}
-	CurrentWorld = NewWorld() // TODO: I don't like that this single is being overwritten in the global scope
+	// CurrentWorld.Reset() // TODO: Re-enable this
 	scene.OnEnter(CurrentWorld)
 	sm.active = scene
 }

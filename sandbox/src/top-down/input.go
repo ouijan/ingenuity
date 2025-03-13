@@ -1,4 +1,4 @@
-package main
+package top_down
 
 import (
 	"github.com/ouijan/ingenuity/pkg/engine"

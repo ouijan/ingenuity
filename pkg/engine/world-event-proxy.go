@@ -8,7 +8,17 @@ import (
 	"github.com/ouijan/ingenuity/pkg/core"
 )
 
-type worldEventProxy struct{}
+// World Event
+type WorldEvent struct {
+	World *World
+	Evt   ecs.EntityEvent
+}
+
+// World Event Proxy
+
+type worldEventProxy struct {
+	world *World
+}
 
 func (l *worldEventProxy) Subscriptions() event.Subscription {
 	return event.All
@@ -19,21 +29,28 @@ func (l *worldEventProxy) Components() *ecs.Mask {
 }
 
 func (l *worldEventProxy) Notify(world *ecs.World, evt ecs.EntityEvent) {
-	emitEvent(evt, event.EntityCreated, "entityCreated")
-	emitEvent(evt, event.EntityRemoved, "entityRemoved")
-	emitEvent(evt, event.ComponentAdded, "componentAdded")
-	emitEvent(evt, event.ComponentRemoved, "componentRemoved")
-	emitEvent(evt, event.RelationChanged, "relationChanged")
-	emitEvent(evt, event.TargetChanged, "targetChanged")
+	l.emitEvent(evt, event.EntityCreated, "entityCreated")
+	l.emitEvent(evt, event.EntityRemoved, "entityRemoved")
+	l.emitEvent(evt, event.ComponentAdded, "componentAdded")
+	l.emitEvent(evt, event.ComponentRemoved, "componentRemoved")
+	l.emitEvent(evt, event.RelationChanged, "relationChanged")
+	l.emitEvent(evt, event.TargetChanged, "targetChanged")
 }
 
-func emitEvent(evt ecs.EntityEvent, eventType event.Subscription, eventName string) {
+func (l *worldEventProxy) emitEvent(
+	evt ecs.EntityEvent,
+	eventType event.Subscription,
+	eventName string,
+) {
 	if evt.EventTypes.Contains(eventType) {
 		eventId := fmt.Sprintf("engine.world.%s", eventName)
-		core.EmitEvent(eventId, evt)
+		core.EmitEvent(eventId, WorldEvent{
+			World: l.world,
+			Evt:   evt,
+		})
 	}
 }
 
-func newWorldEventProxy() *worldEventProxy {
-	return &worldEventProxy{}
+func newWorldEventProxy(world *World) *worldEventProxy {
+	return &worldEventProxy{world: world}
 }

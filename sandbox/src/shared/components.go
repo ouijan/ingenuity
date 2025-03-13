@@ -1,4 +1,4 @@
-package main
+package shared
 
 // Ingenuity:Component
 type DemoComponent1 struct {

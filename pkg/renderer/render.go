@@ -1,16 +1,61 @@
 package renderer
 
 import (
+	"cmp"
+	"slices"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-type RenderCall func() error
+type renderCall struct {
+	Layer     int
+	SortValue float64
+	Render    func()
+}
+
+type renderCallManager struct {
+	calls []renderCall
+}
+
+func (rcm *renderCallManager) Add(layer int, sortValue float64, render func()) {
+	rcm.calls = append(rcm.calls, renderCall{
+		Layer:     layer,
+		SortValue: sortValue,
+		Render:    render,
+	})
+}
+
+func (rcm *renderCallManager) Execute() {
+	slices.SortFunc(rcm.calls, func(a, b renderCall) int {
+		if a.Layer == b.Layer {
+			return cmp.Compare(a.SortValue, b.SortValue)
+		}
+		return cmp.Compare(a.Layer, b.Layer)
+	})
+
+	for _, renderCall := range rcm.calls {
+		renderCall.Render()
+	}
+}
+
+func (rcm *renderCallManager) Clear() {
+	rcm.calls = []renderCall{}
+}
+
+func newRenderCallManager() *renderCallManager {
+	return &renderCallManager{}
+}
+
+var rcm = newRenderCallManager()
+
+func AddCall(layer int, sortValue float64, render func()) {
+	rcm.Add(layer, sortValue, render)
+}
 
 func Render(
-	renderCalls []RenderCall,
 	width, height int,
 ) error {
-	canvas := renderCanvasTexture(renderCalls, width, height)
+	canvas := renderCanvasTexture(width, height)
 	drawCanvas(canvas, width, height)
 	rl.UnloadRenderTexture(canvas)
 
@@ -18,18 +63,17 @@ func Render(
 }
 
 func renderCanvasTexture(
-	renderCalls []RenderCall,
 	width, height int,
 ) rl.RenderTexture2D {
 	canvas := rl.LoadRenderTexture(int32(width), int32(height))
 	rl.SetTextureFilter(canvas.Texture, rl.TextureFilterLinear)
 
 	rl.BeginTextureMode(canvas)
-	rl.ClearBackground(rl.White)
-	for _, renderCall := range renderCalls {
-		renderCall()
-	}
+	rl.ClearBackground(rl.DarkGray)
+	rcm.Execute()
 	rl.EndTextureMode()
+
+	rcm.Clear()
 
 	return canvas
 }

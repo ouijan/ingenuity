@@ -7,6 +7,7 @@ require (
 	github.com/gen2brain/raylib-go/raylib v0.0.0-20250215042252-db8e47f0e5c5
 	github.com/gookit/event v1.1.2
 	github.com/iancoleman/strcase v0.3.0
+	github.com/jakecoffman/cp/v2 v2.1.0
 	github.com/lafriks/go-tiled v0.13.0
 	github.com/mlange-42/arche v0.15.3
 	github.com/urfave/cli/v3 v3.0.0-beta1
