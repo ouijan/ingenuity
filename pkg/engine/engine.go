@@ -6,6 +6,7 @@ import (
 	"runtime/trace"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/ouijan/ingenuity/pkg/audio"
 	"github.com/ouijan/ingenuity/pkg/core"
 	"github.com/ouijan/ingenuity/pkg/renderer"
 )
@@ -26,6 +27,8 @@ func Run() {
 		renderer.Render(Window.CanvasWidth, Window.CanvasHeight)
 	}
 }
+
+var Audio = audio.NewAudioDevice()
 
 func close() {
 	core.Log.Sync()

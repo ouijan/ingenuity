@@ -2,8 +2,10 @@ package pong
 
 import (
 	"fmt"
+	"path"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/ouijan/ingenuity/pkg/audio"
 	"github.com/ouijan/ingenuity/pkg/engine"
 	"github.com/ouijan/ingenuity/pkg/renderer"
 	"github.com/ouijan/ingenuity/sandbox/src/shared"
@@ -18,9 +20,14 @@ type pongScene struct {
 	enemyController    *enemyController
 }
 
+var soundMap = map[string]audio.Sound{} // TODO: Replace use of global with a resource manager
+
 // Load implements engine.IScene.
 func (p *pongScene) Load() {
-	// panic("unimplemented")
+	rootDir := "./"
+	soundMap["bounce"] = audio.LoadSound(path.Join(rootDir, "assets/audio/bounce.wav"))
+	soundMap["lose"] = audio.LoadSound(path.Join(rootDir, "assets/audio/lose.wav"))
+	soundMap["win"] = audio.LoadSound(path.Join(rootDir, "assets/audio/win.wav"))
 }
 
 // OnEnter implements engine.IScene.
@@ -161,13 +168,14 @@ func (p *pongScene) OnEnter(w *engine.World) {
 		RightScore: 0,
 	})
 
-	w.PrintDebug()
+	// w.PrintDebug()
 }
 
 // OnExit implements engine.IScene.
 func (p *pongScene) OnExit(w *engine.World) {
 	engine.Input.Unregister(p.playerInputContext)
 	engine.Systems.Unregister(p.systems...)
+	soundMap = map[string]audio.Sound{} // Don't like the global here
 }
 
 var _ engine.IScene = (*pongScene)(nil)
@@ -312,8 +320,11 @@ type goalComponent struct {
 // ------------------ Resources ------------------
 
 type gameState struct {
-	LeftScore  int
-	RightScore int
+	LeftScore   int
+	RightScore  int
+	bounceSound audio.Sound
+	winSound    audio.Sound
+	loseSound   audio.Sound
 }
 
 // ------------------ Gameplay System ------------------
@@ -326,33 +337,32 @@ func (g *gameplaySystem) Update(w *engine.World, dt float64) {
 		return
 	}
 
-	engine.Query2(w, func(_ engine.Entity, gc *goalComponent, col *engine.BoxCollider2DComponent) {
-		if !g.hasBallCollision(w, col) {
-			return
-		}
-		if gc.Id == goalRight {
-			gs.LeftScore++
-			shared.Log.Info(fmt.Sprintf("Player 1 Scored: %d", gs.LeftScore))
-		}
-		if gc.Id == goalLeft {
-			gs.RightScore++
-			shared.Log.Info(fmt.Sprintf("Player 2 Scored: %d", gs.RightScore))
-		}
-		g.resetBall(w)
-	})
-}
+	winSound := soundMap["win"]
+	loseSound := soundMap["lose"]
+	bounceSound := soundMap["bounce"]
 
-func (g *gameplaySystem) hasBallCollision(
-	w *engine.World,
-	col *engine.BoxCollider2DComponent,
-) bool {
-	for _, collision := range col.Collisions {
-		ball := engine.GetComponent[ballComponent](w, collision.OtherEntity)
-		if ball != nil {
-			return true
+	engine.Query2(w, func(_ engine.Entity, b *ballComponent, col *engine.BoxCollider2DComponent) {
+		for _, collision := range col.Collisions {
+			goal := engine.GetComponent[goalComponent](w, collision.OtherEntity)
+			if goal != nil {
+				if goal.Id == goalRight {
+					engine.Audio.PlaySound(winSound)
+					gs.LeftScore++
+					shared.Log.Info(fmt.Sprintf("Player 1 Scored: %d", gs.LeftScore))
+					g.resetBall(w)
+					return
+				}
+				if goal.Id == goalLeft {
+					engine.Audio.PlaySound(loseSound)
+					gs.RightScore++
+					shared.Log.Info(fmt.Sprintf("Player 2 Scored: %d", gs.RightScore))
+					g.resetBall(w)
+					return
+				}
+			}
+			engine.Audio.PlaySound(bounceSound)
 		}
-	}
-	return false
+	})
 }
 
 func (g *gameplaySystem) resetBall(w *engine.World) {
