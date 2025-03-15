@@ -2,6 +2,8 @@ package engine
 
 import (
 	"fmt"
+	"os"
+	"runtime/trace"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/ouijan/ingenuity/pkg/core"
@@ -13,6 +15,7 @@ func Run() {
 
 	attachRaylibLogger(true)
 	attachEventLogger(true)
+	attachTraceLogger(false)
 
 	// TODO: Pull these from config (or pass config in)
 	Window.Open(800, 450, "Ingenuity")
@@ -28,6 +31,7 @@ func close() {
 	core.Log.Sync()
 	core.CloseEvents()
 	Window.Close()
+	trace.Stop()
 }
 
 func attachRaylibLogger(quiet bool) {
@@ -65,4 +69,12 @@ func attachEventLogger(quiet bool) {
 		core.Log.Info(fmt.Sprintf("%s: %v", evt.EventId, entityId))
 		return nil
 	})
+}
+
+func attachTraceLogger(quiet bool) {
+	if quiet {
+		return
+	}
+	f, _ := os.Create("trace.out")
+	trace.Start(f)
 }
