@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/ouijan/ingenuity/pkg/core"
 	"github.com/ouijan/ingenuity/pkg/renderer"
@@ -10,7 +12,7 @@ func Run() {
 	defer close()
 
 	attachRaylibLogger(true)
-	attachEventLogger()
+	attachEventLogger(true)
 
 	// TODO: Pull these from config (or pass config in)
 	Window.Open(800, 450, "Ingenuity")
@@ -54,10 +56,13 @@ func attachRaylibLogger(quiet bool) {
 	})
 }
 
-func attachEventLogger() {
+func attachEventLogger(quiet bool) {
+	if quiet {
+		return
+	}
 	core.OnEvent("engine.world.*", func(evt core.Event[WorldEvent]) error {
-		// entityId := evt.Data.Evt.Entity.ID()
-		// core.Log.Info(fmt.Sprintf("%s: %v", evt.EventId, entityId))
+		entityId := evt.Data.Evt.Entity.ID()
+		core.Log.Info(fmt.Sprintf("%s: %v", evt.EventId, entityId))
 		return nil
 	})
 }

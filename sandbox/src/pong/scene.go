@@ -16,7 +16,6 @@ type pongScene struct {
 	playerInputContext *engine.InputMappingContext
 	playerController   *playerController
 	enemyController    *enemyController
-	gameplaySystem     *gameplaySystem
 }
 
 // Load implements engine.IScene.
@@ -35,7 +34,9 @@ func (p *pongScene) OnEnter(w *engine.World) {
 
 	// Add Player
 	player := engine.AddEntity(w)
-	engine.AddComponent(w, player, &paddleComponent{})
+	engine.AddComponent(w, player, &paddleComponent{
+		Speed: 2,
+	})
 	engine.AddComponent(w, player, &engine.TransformComponent{
 		X: 20, Y: halfHeight,
 	})
@@ -54,7 +55,9 @@ func (p *pongScene) OnEnter(w *engine.World) {
 
 	// Add Enemy
 	enemy := engine.AddEntity(w)
-	engine.AddComponent(w, enemy, &paddleComponent{})
+	engine.AddComponent(w, enemy, &paddleComponent{
+		Speed: 2,
+	})
 	engine.AddComponent(w, enemy, &engine.TransformComponent{
 		X: float64(engine.Window.CanvasWidth - 20),
 		Y: halfHeight,
@@ -73,8 +76,11 @@ func (p *pongScene) OnEnter(w *engine.World) {
 	p.enemyController.SetEntity(enemy)
 
 	// Add Ball
+	ballSpeed := 2.0
 	ball := engine.AddEntity(w)
-	engine.AddComponent(w, ball, &ballComponent{})
+	engine.AddComponent(w, ball, &ballComponent{
+		Speed: ballSpeed,
+	})
 	engine.AddComponent(
 		w,
 		ball,
@@ -88,8 +94,8 @@ func (p *pongScene) OnEnter(w *engine.World) {
 	engine.AddComponent(w, ball, &engine.RigidBody2DComponent{
 		Type: engine.RB_Dynamic,
 		Mass: 1,
-		Vx:   -100,
-		Vy:   -100,
+		Vx:   -100 * ballSpeed,
+		Vy:   -100 * ballSpeed,
 	})
 
 	// Add Walls
@@ -129,6 +135,7 @@ func (p *pongScene) OnEnter(w *engine.World) {
 
 	// Add win triggers (left and right)
 	leftWall := engine.AddEntity(w)
+	engine.AddComponent(w, leftWall, &goalComponent{Id: goalLeft})
 	engine.AddComponent(w, leftWall, &engine.TransformComponent{
 		X: 0, Y: halfHeight,
 	})
@@ -137,9 +144,9 @@ func (p *pongScene) OnEnter(w *engine.World) {
 		Category:     1,
 		CategoryMask: 1,
 	})
-	p.gameplaySystem.LeftGoal = leftWall
 
 	rightWall := engine.AddEntity(w)
+	engine.AddComponent(w, rightWall, &goalComponent{Id: goalRight})
 	engine.AddComponent(w, rightWall, &engine.TransformComponent{
 		X: float64(engine.Window.CanvasWidth), Y: halfHeight,
 	})
@@ -148,7 +155,11 @@ func (p *pongScene) OnEnter(w *engine.World) {
 		Category:     1,
 		CategoryMask: 1,
 	})
-	p.gameplaySystem.RightGoal = rightWall
+
+	engine.AddResource(w, &gameState{
+		LeftScore:  0,
+		RightScore: 0,
+	})
 
 	w.PrintDebug()
 }
@@ -164,20 +175,17 @@ var _ engine.IScene = (*pongScene)(nil)
 func NewPongScene() *pongScene {
 	playerController := newPlayerController()
 	enemyController := newEnemyController()
-	gameplaySystem := newGameplaySystem()
-
 	return &pongScene{
 		systems: []engine.System{
 			playerController,
 			enemyController,
 			engine.NewPhysics2DSystem(),
-			gameplaySystem,
+			newGameplaySystem(),
 			newPongRenderingSystem(),
 		},
 		playerInputContext: newPlayerInputContext(),
 		playerController:   playerController,
 		enemyController:    enemyController,
-		gameplaySystem:     gameplaySystem,
 	}
 }
 
@@ -201,19 +209,20 @@ type playerController struct {
 }
 
 // Update implements engine.System.
-func (p *playerController) Update(world *engine.World, delta float64) {
-	if p.entity.IsNull() {
+func (pc *playerController) Update(world *engine.World, delta float64) {
+	if pc.entity.IsNull() {
 		return
 	}
-	transform := engine.GetComponent[engine.TransformComponent](world, p.entity)
-	if transform == nil {
+	paddle := engine.GetComponent[paddleComponent](world, pc.entity)
+	t := engine.GetComponent[engine.TransformComponent](world, pc.entity)
+	if t == nil {
 		return
 	}
 
 	if engine.Input.Get(action_MoveUp) > 0 {
-		transform.Y -= 1
+		t.Y -= paddle.Speed
 	} else if engine.Input.Get(action_MoveDown) > 0 {
-		transform.Y += 1
+		t.Y += paddle.Speed
 	}
 }
 
@@ -240,8 +249,9 @@ func (e *enemyController) Update(world *engine.World, delta float64) {
 	if e.entity.IsNull() {
 		return
 	}
+	p := engine.GetComponent[paddleComponent](world, e.entity)
 	t := engine.GetComponent[engine.TransformComponent](world, e.entity)
-	if t == nil {
+	if p == nil || t == nil {
 		return
 	}
 
@@ -251,10 +261,10 @@ func (e *enemyController) Update(world *engine.World, delta float64) {
 	}
 
 	if t.Y > b.Y {
-		t.Y -= 1
+		t.Y -= p.Speed
 	}
 	if t.Y < b.Y {
-		t.Y += 1
+		t.Y += p.Speed
 	}
 }
 
@@ -280,43 +290,62 @@ func newEnemyController() *enemyController {
 
 // ------------------ Components ------------------
 
-type (
-	paddleComponent struct{}
-	ballComponent   struct{}
+type paddleComponent struct {
+	Speed float64
+}
+
+type ballComponent struct {
+	Speed float64
+}
+
+type goalId uint8
+
+const (
+	goalLeft goalId = iota
+	goalRight
 )
 
-// ------------------ Gameplay System ------------------
-type gameplaySystem struct {
-	LeftGoal   engine.Entity
-	RightGoal  engine.Entity
+type goalComponent struct {
+	Id goalId
+}
+
+// ------------------ Resources ------------------
+
+type gameState struct {
 	LeftScore  int
 	RightScore int
 }
 
+// ------------------ Gameplay System ------------------
+type gameplaySystem struct{}
+
 // Update implements engine.System.
 func (g *gameplaySystem) Update(w *engine.World, dt float64) {
-	shared.Log.Info(fmt.Sprintf("Player 1: %d, Player 2: %d", g.LeftScore, g.RightScore))
-	if g.hasBallCollision(w, g.RightGoal) {
-		g.LeftScore++
-		shared.Log.Info(fmt.Sprintf("Player 1 Scored: %d", g.LeftScore))
-		g.resetBall(w)
+	gs := engine.GetResource[gameState](w)
+	if gs == nil {
+		return
 	}
-	if g.hasBallCollision(w, g.LeftGoal) {
-		g.RightScore++
-		shared.Log.Info(fmt.Sprintf("Player 2 Scored: %d", g.RightScore))
+
+	engine.Query2(w, func(_ engine.Entity, gc *goalComponent, col *engine.BoxCollider2DComponent) {
+		if !g.hasBallCollision(w, col) {
+			return
+		}
+		if gc.Id == goalRight {
+			gs.LeftScore++
+			shared.Log.Info(fmt.Sprintf("Player 1 Scored: %d", gs.LeftScore))
+		}
+		if gc.Id == goalLeft {
+			gs.RightScore++
+			shared.Log.Info(fmt.Sprintf("Player 2 Scored: %d", gs.RightScore))
+		}
 		g.resetBall(w)
-	}
+	})
 }
 
 func (g *gameplaySystem) hasBallCollision(
 	w *engine.World,
-	e engine.Entity,
+	col *engine.BoxCollider2DComponent,
 ) bool {
-	if e.IsNull() {
-		return false
-	}
-
-	col := engine.GetComponent[engine.BoxCollider2DComponent](w, e)
 	for _, collision := range col.Collisions {
 		ball := engine.GetComponent[ballComponent](w, collision.OtherEntity)
 		if ball != nil {
@@ -329,11 +358,11 @@ func (g *gameplaySystem) hasBallCollision(
 func (g *gameplaySystem) resetBall(w *engine.World) {
 	engine.Query3(
 		w,
-		func(_ engine.Entity, t *engine.TransformComponent, rb *engine.RigidBody2DComponent, _ *ballComponent) {
+		func(_ engine.Entity, t *engine.TransformComponent, rb *engine.RigidBody2DComponent, b *ballComponent) {
 			t.X = float64(engine.Window.CanvasWidth / 2)
 			t.Y = float64(engine.Window.CanvasHeight / 2)
-			rb.Vx = -100
-			rb.Vy = -100
+			rb.Vx = -100 * b.Speed
+			rb.Vy = -100 * b.Speed
 		},
 	)
 }
@@ -348,9 +377,9 @@ func newGameplaySystem() *gameplaySystem {
 type pongRenderingSystem struct{}
 
 // Update implements engine.System.
-func (g *pongRenderingSystem) Update(world *engine.World, dt float64) {
+func (g *pongRenderingSystem) Update(w *engine.World, dt float64) {
 	engine.Query3(
-		world,
+		w,
 		func(_ engine.Entity, trans *engine.TransformComponent, collider *engine.BoxCollider2DComponent, _ *paddleComponent) {
 			renderer.AddCall(0, 0, func() {
 				// TODO: Abstract RayLib calls behind engine/render api package
@@ -365,7 +394,7 @@ func (g *pongRenderingSystem) Update(world *engine.World, dt float64) {
 		},
 	)
 	engine.Query3(
-		world,
+		w,
 		func(_ engine.Entity, trans *engine.TransformComponent, collider *engine.BoxCollider2DComponent, _ *ballComponent) {
 			renderer.AddCall(0, 0, func() {
 				rl.DrawRectangle(
@@ -378,6 +407,24 @@ func (g *pongRenderingSystem) Update(world *engine.World, dt float64) {
 			})
 		},
 	)
+
+	gs := engine.GetResource[gameState](w)
+	if gs != nil {
+		hw := int32(engine.Window.CanvasWidth / 2)
+		size := int32(25)
+		gap := int32(10)
+
+		lScore := fmt.Sprintf("%d", gs.LeftScore)
+		lOffset := rl.MeasureText(lScore, size) + gap
+
+		rScore := fmt.Sprintf("%d", gs.RightScore)
+		rOffset := gap
+
+		renderer.AddCall(0, 0, func() {
+			rl.DrawText(lScore, hw-lOffset, 25, size, rl.White)
+			rl.DrawText(rScore, hw+rOffset, 25, size, rl.White)
+		})
+	}
 }
 
 var _ engine.System = (*pongRenderingSystem)(nil)

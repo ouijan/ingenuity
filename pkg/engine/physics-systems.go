@@ -38,7 +38,7 @@ func (p *physics2DSystem) Update(w *World, dt float64) {
 }
 
 func clearCollisions(shape *cp.Shape) {
-	shapedata, ok := shape.UserData.(*physicsData)
+	shapedata, ok := shape.UserData.(physicsData)
 	if !ok {
 		return
 	}
@@ -46,7 +46,7 @@ func clearCollisions(shape *cp.Shape) {
 }
 
 func updateData(body *cp.Body) {
-	data, ok := body.UserData.(*physicsData)
+	data, ok := body.UserData.(physicsData)
 	if !ok {
 		core.Log.Error("Failed to get physics data from body")
 		return
@@ -63,8 +63,8 @@ func updateData(body *cp.Body) {
 
 func preSolve(arb *cp.Arbiter) bool {
 	a, b := arb.Shapes()
-	aData, aOk := a.UserData.(*physicsData)
-	bData, bOk := b.UserData.(*physicsData)
+	aData, aOk := a.UserData.(physicsData)
+	bData, bOk := b.UserData.(physicsData)
 	if !aOk || !bOk {
 		core.Log.Error("Failed to get physics data from shape")
 		return true
@@ -87,8 +87,8 @@ func newPhysicsData(
 	t *TransformComponent,
 	c *BoxCollider2DComponent,
 	rb *RigidBody2DComponent,
-) *physicsData {
-	return &physicsData{
+) physicsData {
+	return physicsData{
 		e:  e,
 		t:  t,
 		c:  c,
@@ -125,7 +125,7 @@ func newBody(
 }
 
 func updateBody(body *cp.Body) {
-	data, ok := body.UserData.(*physicsData)
+	data, ok := body.UserData.(physicsData)
 	if !ok {
 		core.Log.Error("Failed to get physics data from body")
 		return
@@ -153,7 +153,7 @@ func newShape(
 }
 
 func updateShape(shape *cp.Shape) {
-	data, ok := shape.UserData.(*physicsData)
+	data, ok := shape.UserData.(physicsData)
 	if !ok {
 		core.Log.Error("Failed to get physics data from shape")
 		return
@@ -186,12 +186,16 @@ func drawDebug(space *cp.Space) {
 		}
 
 		body.EachShape(func(shape *cp.Shape) {
+			shapeColor := colour
+			if shape.Sensor() {
+				shapeColor = rl.Purple
+			}
 			renderer.AddCall(5, 0, func() {
 				x := shape.BB().L
 				y := shape.BB().T
 				w := shape.BB().R - shape.BB().L
 				h := shape.BB().B - shape.BB().T
-				rl.DrawRectangleLines(int32(x), int32(y), int32(w), int32(h), colour)
+				rl.DrawRectangleLines(int32(x), int32(y), int32(w), int32(h), shapeColor)
 			})
 		})
 	})

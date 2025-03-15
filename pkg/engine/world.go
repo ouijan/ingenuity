@@ -135,7 +135,10 @@ func newEntity(entity ecs.Entity) Entity {
 
 // Component
 
-type Component interface{}
+type (
+	Component interface{}
+	Resource  interface{}
+)
 
 type ChildOf struct {
 	ecs.Relation
@@ -155,58 +158,67 @@ type ChildOf struct {
 // 	return newEntity(entity)
 // }
 
-func AddEntity(world *World) Entity {
-	return newEntity(world.ecs.NewEntity())
+func AddEntity(w *World) Entity {
+	return newEntity(w.ecs.NewEntity())
 }
 
-func RemoveEntity(world *World, entity Entity) {
-	world.ecs.RemoveEntity(entity.entity)
+func RemoveEntity(w *World, e Entity) {
+	w.ecs.RemoveEntity(e.entity)
 }
 
-func AddComponent[T Component](world *World, entity Entity, component *T) {
-	mapper := generic.NewMap1[T](&world.ecs)
-	mapper.Assign(entity.entity, component)
+func AddComponent[T Component](w *World, e Entity, comp *T) {
+	mapper := generic.NewMap1[T](&w.ecs)
+	mapper.Assign(e.entity, comp)
 }
 
-func RemoveComponent[T Component](world *World, entity Entity, component *T) {
-	mapper := generic.NewMap1[T](&world.ecs)
-	mapper.Remove(entity.entity)
+func RemoveComponent[T Component](w *World, e Entity, comp *T) {
+	mapper := generic.NewMap1[T](&w.ecs)
+	mapper.Remove(e.entity)
 }
 
-func GetComponent[T Component](world *World, entity Entity) *T {
-	mapper := generic.NewMap1[T](&world.ecs)
+func GetComponent[T Component](w *World, entity Entity) *T {
+	mapper := generic.NewMap1[T](&w.ecs)
 	return mapper.Get(entity.entity)
 }
 
-func AddParent(world *World, child Entity, parent Entity) {
-	AddComponent(world, child, &ChildOf{Parent: parent.entity})
+func AddResource[T Resource](w *World, resource *T) {
+	ecs.AddResource(&w.ecs, resource)
 }
 
-func RemoveParent(world *World, child Entity) {
-	RemoveComponent(world, child, &ChildOf{})
+func GetResource[T Resource](w *World) *T {
+	gridRes := generic.NewResource[T](&w.ecs)
+	return gridRes.Get()
 }
 
-func Query1[C1 any](world *World, iterator func(Entity, *C1)) {
+func AddParent(w *World, child Entity, parent Entity) {
+	AddComponent(w, child, &ChildOf{Parent: parent.entity})
+}
+
+func RemoveParent(w *World, child Entity) {
+	RemoveComponent(w, child, &ChildOf{})
+}
+
+func Query1[C1 any](w *World, iterator func(Entity, *C1)) {
 	filter := generic.NewFilter1[C1]()
-	query := filter.Query(&world.ecs)
+	query := filter.Query(&w.ecs)
 	for query.Next() {
 		c1 := query.Get()
 		iterator(newEntity(query.Entity()), c1)
 	}
 }
 
-func Query2[C1 any, C2 any](world *World, iterator func(Entity, *C1, *C2)) {
+func Query2[C1 any, C2 any](w *World, iterator func(Entity, *C1, *C2)) {
 	filter := generic.NewFilter2[C1, C2]()
-	query := filter.Query(&world.ecs)
+	query := filter.Query(&w.ecs)
 	for query.Next() {
 		c1, c2 := query.Get()
 		iterator(newEntity(query.Entity()), c1, c2)
 	}
 }
 
-func Query3[C1 any, C2 any, C3 any](world *World, iterator func(Entity, *C1, *C2, *C3)) {
+func Query3[C1 any, C2 any, C3 any](w *World, iterator func(Entity, *C1, *C2, *C3)) {
 	filter := generic.NewFilter3[C1, C2, C3]()
-	query := filter.Query(&world.ecs)
+	query := filter.Query(&w.ecs)
 	for query.Next() {
 		c1, c2, c3 := query.Get()
 		iterator(newEntity(query.Entity()), c1, c2, c3)
@@ -214,11 +226,11 @@ func Query3[C1 any, C2 any, C3 any](world *World, iterator func(Entity, *C1, *C2
 }
 
 func Query4[C1 any, C2 any, C3 any, C4 any](
-	world *World,
+	w *World,
 	iterator func(Entity, *C1, *C2, *C3, *C4),
 ) {
 	filter := generic.NewFilter4[C1, C2, C3, C4]()
-	query := filter.Query(&world.ecs)
+	query := filter.Query(&w.ecs)
 	for query.Next() {
 		c1, c2, c3, c4 := query.Get()
 		iterator(newEntity(query.Entity()), c1, c2, c3, c4)
