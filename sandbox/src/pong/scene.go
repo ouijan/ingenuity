@@ -1,9 +1,12 @@
 package pong
 
 import (
+	"fmt"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/ouijan/ingenuity/pkg/engine"
 	"github.com/ouijan/ingenuity/pkg/renderer"
+	"github.com/ouijan/ingenuity/sandbox/src/shared"
 )
 
 // ------------------ Scene ------------------
@@ -12,6 +15,8 @@ type pongScene struct {
 	systems            []engine.System
 	playerInputContext *engine.InputMappingContext
 	playerController   *playerController
+	enemyController    *enemyController
+	gameplaySystem     *gameplaySystem
 }
 
 // Load implements engine.IScene.
@@ -20,24 +25,26 @@ func (p *pongScene) Load() {
 }
 
 // OnEnter implements engine.IScene.
-func (p *pongScene) OnEnter(world *engine.World) {
+func (p *pongScene) OnEnter(w *engine.World) {
 	// Set Player Controller and Register Systems
 	engine.Input.Register(p.playerInputContext)
 	engine.Systems.Register(p.systems...)
 
+	halfWidth := float64(engine.Window.CanvasWidth / 2)
+	halfHeight := float64(engine.Window.CanvasHeight / 2)
+
 	// Add Player
-	player := engine.AddEntity(world)
-	engine.AddComponent(world, player, &paddleComponent{})
-	engine.AddComponent(world, player, &engine.TransformComponent{
-		X: 20,
-		Y: float64(engine.Window.CanvasHeight / 2),
+	player := engine.AddEntity(w)
+	engine.AddComponent(w, player, &paddleComponent{})
+	engine.AddComponent(w, player, &engine.TransformComponent{
+		X: 20, Y: halfHeight,
 	})
-	engine.AddComponent(world, player, &engine.BoxCollider2DComponent{
+	engine.AddComponent(w, player, &engine.BoxCollider2DComponent{
 		T: 30, B: 30, L: 5, R: 5,
 		Category:     1,
 		CategoryMask: 1,
 	})
-	engine.AddComponent(world, player, &engine.RigidBody2DComponent{
+	engine.AddComponent(w, player, &engine.RigidBody2DComponent{
 		Type: engine.RB_Kinematic,
 		Mass: 1,
 		Vx:   0,
@@ -46,41 +53,39 @@ func (p *pongScene) OnEnter(world *engine.World) {
 	p.playerController.SetEntity(player)
 
 	// Add Enemy
-	enemy := engine.AddEntity(world)
-	engine.AddComponent(world, enemy, &paddleComponent{})
-	engine.AddComponent(world, enemy, &engine.TransformComponent{
+	enemy := engine.AddEntity(w)
+	engine.AddComponent(w, enemy, &paddleComponent{})
+	engine.AddComponent(w, enemy, &engine.TransformComponent{
 		X: float64(engine.Window.CanvasWidth - 20),
-		Y: float64(engine.Window.CanvasHeight / 2),
+		Y: halfHeight,
 	})
-	engine.AddComponent(world, enemy, &engine.BoxCollider2DComponent{
+	engine.AddComponent(w, enemy, &engine.BoxCollider2DComponent{
 		T: 30, B: 30, L: 5, R: 5,
 		Category:     1,
 		CategoryMask: 1,
 	})
-	engine.AddComponent(world, enemy, &engine.RigidBody2DComponent{
+	engine.AddComponent(w, enemy, &engine.RigidBody2DComponent{
 		Type: engine.RB_Kinematic,
 		Mass: 1,
 		Vx:   0,
 		Vy:   0,
 	})
+	p.enemyController.SetEntity(enemy)
 
 	// Add Ball
-	ball := engine.AddEntity(world)
-	engine.AddComponent(world, ball, &ballComponent{})
+	ball := engine.AddEntity(w)
+	engine.AddComponent(w, ball, &ballComponent{})
 	engine.AddComponent(
-		world,
+		w,
 		ball,
-		&engine.TransformComponent{
-			X: float64(engine.Window.CanvasWidth / 2),
-			Y: float64(engine.Window.CanvasHeight / 2),
-		},
+		&engine.TransformComponent{X: halfWidth, Y: halfHeight},
 	)
-	engine.AddComponent(world, ball, &engine.BoxCollider2DComponent{
+	engine.AddComponent(w, ball, &engine.BoxCollider2DComponent{
 		T: 5, B: 5, L: 5, R: 5,
 		Category:     1,
 		CategoryMask: 1,
 	})
-	engine.AddComponent(world, ball, &engine.RigidBody2DComponent{
+	engine.AddComponent(w, ball, &engine.RigidBody2DComponent{
 		Type: engine.RB_Dynamic,
 		Mass: 1,
 		Vx:   -100,
@@ -88,43 +93,68 @@ func (p *pongScene) OnEnter(world *engine.World) {
 	})
 
 	// Add Walls
-	topWall := engine.AddEntity(world)
-	engine.AddComponent(world, topWall, &engine.TransformComponent{
-		X: float64(engine.Window.CanvasWidth / 2),
+	topWall := engine.AddEntity(w)
+	engine.AddComponent(w, topWall, &engine.TransformComponent{
+		X: halfWidth,
 		Y: 0,
 	})
-	engine.AddComponent(world, topWall, &engine.BoxCollider2DComponent{
-		T: 5, B: 5, L: float64(engine.Window.CanvasWidth / 2), R: float64(engine.Window.CanvasWidth / 2),
+	engine.AddComponent(w, topWall, &engine.BoxCollider2DComponent{
+		T: 5, B: 5, L: halfWidth, R: halfWidth,
 		Category:     1,
 		CategoryMask: 1,
 	})
-	engine.AddComponent(world, topWall, &engine.RigidBody2DComponent{
+	engine.AddComponent(w, topWall, &engine.RigidBody2DComponent{
 		Type: engine.RB_Static,
 		Mass: 1,
 		Vx:   0,
 		Vy:   0,
 	})
 
-	bottomWall := engine.AddEntity(world)
-	engine.AddComponent(world, bottomWall, &engine.TransformComponent{
-		X: float64(engine.Window.CanvasWidth / 2),
+	bottomWall := engine.AddEntity(w)
+	engine.AddComponent(w, bottomWall, &engine.TransformComponent{
+		X: halfWidth,
 		Y: float64(engine.Window.CanvasHeight),
 	})
-	engine.AddComponent(world, bottomWall, &engine.BoxCollider2DComponent{
-		T: 5, B: 5, L: float64(engine.Window.CanvasWidth / 2), R: float64(engine.Window.CanvasWidth / 2),
+	engine.AddComponent(w, bottomWall, &engine.BoxCollider2DComponent{
+		T: 5, B: 5, L: halfWidth, R: halfWidth,
 		Category:     1,
 		CategoryMask: 1,
 	})
-	engine.AddComponent(world, bottomWall, &engine.RigidBody2DComponent{
+	engine.AddComponent(w, bottomWall, &engine.RigidBody2DComponent{
 		Type: engine.RB_Static,
 		Mass: 1,
 		Vx:   0,
 		Vy:   0,
 	})
+
+	// Add win triggers (left and right)
+	leftWall := engine.AddEntity(w)
+	engine.AddComponent(w, leftWall, &engine.TransformComponent{
+		X: 0, Y: halfHeight,
+	})
+	engine.AddComponent(w, leftWall, &engine.BoxCollider2DComponent{
+		T: halfHeight, B: halfHeight, L: 5, R: 5,
+		Category:     1,
+		CategoryMask: 1,
+	})
+	p.gameplaySystem.LeftGoal = leftWall
+
+	rightWall := engine.AddEntity(w)
+	engine.AddComponent(w, rightWall, &engine.TransformComponent{
+		X: float64(engine.Window.CanvasWidth), Y: halfHeight,
+	})
+	engine.AddComponent(w, rightWall, &engine.BoxCollider2DComponent{
+		T: halfHeight, B: halfHeight, L: 5, R: 5,
+		Category:     1,
+		CategoryMask: 1,
+	})
+	p.gameplaySystem.RightGoal = rightWall
+
+	w.PrintDebug()
 }
 
 // OnExit implements engine.IScene.
-func (p *pongScene) OnExit(world *engine.World) {
+func (p *pongScene) OnExit(w *engine.World) {
 	engine.Input.Unregister(p.playerInputContext)
 	engine.Systems.Unregister(p.systems...)
 }
@@ -133,15 +163,21 @@ var _ engine.IScene = (*pongScene)(nil)
 
 func NewPongScene() *pongScene {
 	playerController := newPlayerController()
+	enemyController := newEnemyController()
+	gameplaySystem := newGameplaySystem()
+
 	return &pongScene{
 		systems: []engine.System{
 			playerController,
-			// newGameplaySystem(),
+			enemyController,
 			engine.NewPhysics2DSystem(),
+			gameplaySystem,
 			newPongRenderingSystem(),
 		},
 		playerInputContext: newPlayerInputContext(),
 		playerController:   playerController,
+		enemyController:    enemyController,
+		gameplaySystem:     gameplaySystem,
 	}
 }
 
@@ -193,6 +229,55 @@ func newPlayerController() *playerController {
 	}
 }
 
+// ------------------ Enemy Controller ------------------
+
+type enemyController struct {
+	entity engine.Entity
+}
+
+// Update implements engine.System.
+func (e *enemyController) Update(world *engine.World, delta float64) {
+	if e.entity.IsNull() {
+		return
+	}
+	t := engine.GetComponent[engine.TransformComponent](world, e.entity)
+	if t == nil {
+		return
+	}
+
+	b := e.findBall(world)
+	if b == nil {
+		return
+	}
+
+	if t.Y > b.Y {
+		t.Y -= 1
+	}
+	if t.Y < b.Y {
+		t.Y += 1
+	}
+}
+
+func (e *enemyController) findBall(w *engine.World) *engine.TransformComponent {
+	var bt *engine.TransformComponent
+	engine.Query2(w, func(_ engine.Entity, t *engine.TransformComponent, _ *ballComponent) {
+		bt = t
+	})
+	return bt
+}
+
+func (e *enemyController) SetEntity(entity engine.Entity) {
+	e.entity = entity
+}
+
+var _ engine.System = (*enemyController)(nil)
+
+func newEnemyController() *enemyController {
+	return &enemyController{
+		entity: engine.Entity{},
+	}
+}
+
 // ------------------ Components ------------------
 
 type (
@@ -201,12 +286,56 @@ type (
 )
 
 // ------------------ Gameplay System ------------------
-type gameplaySystem struct{}
+type gameplaySystem struct {
+	LeftGoal   engine.Entity
+	RightGoal  engine.Entity
+	LeftScore  int
+	RightScore int
+}
 
 // Update implements engine.System.
-func (g *gameplaySystem) Update(world *engine.World, dt float64) {
-	// TODO: Implement ball movement? Physics?
-	// TODO: Implement score + reset
+func (g *gameplaySystem) Update(w *engine.World, dt float64) {
+	shared.Log.Info(fmt.Sprintf("Player 1: %d, Player 2: %d", g.LeftScore, g.RightScore))
+	if g.hasBallCollision(w, g.RightGoal) {
+		g.LeftScore++
+		shared.Log.Info(fmt.Sprintf("Player 1 Scored: %d", g.LeftScore))
+		g.resetBall(w)
+	}
+	if g.hasBallCollision(w, g.LeftGoal) {
+		g.RightScore++
+		shared.Log.Info(fmt.Sprintf("Player 2 Scored: %d", g.RightScore))
+		g.resetBall(w)
+	}
+}
+
+func (g *gameplaySystem) hasBallCollision(
+	w *engine.World,
+	e engine.Entity,
+) bool {
+	if e.IsNull() {
+		return false
+	}
+
+	col := engine.GetComponent[engine.BoxCollider2DComponent](w, e)
+	for _, collision := range col.Collisions {
+		ball := engine.GetComponent[ballComponent](w, collision.OtherEntity)
+		if ball != nil {
+			return true
+		}
+	}
+	return false
+}
+
+func (g *gameplaySystem) resetBall(w *engine.World) {
+	engine.Query3(
+		w,
+		func(_ engine.Entity, t *engine.TransformComponent, rb *engine.RigidBody2DComponent, _ *ballComponent) {
+			t.X = float64(engine.Window.CanvasWidth / 2)
+			t.Y = float64(engine.Window.CanvasHeight / 2)
+			rb.Vx = -100
+			rb.Vy = -100
+		},
+	)
 }
 
 var _ engine.System = (*gameplaySystem)(nil)

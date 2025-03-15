@@ -7,11 +7,11 @@ type PlayerController struct {
 }
 
 // Update implements engine.System.
-func (p *PlayerController) Update(world *engine.World) {
+func (p *PlayerController) Update(w *engine.World, _ float64) {
 	if p.entity.IsNull() {
 		return
 	}
-	transform := engine.GetComponent[engine.TransformComponent](world, p.entity)
+	transform := engine.GetComponent[engine.TransformComponent](w, p.entity)
 	if transform == nil {
 		return
 	}

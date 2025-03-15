@@ -1,7 +1,9 @@
 package engine
 
 import (
+	"encoding/json"
 	"fmt"
+	"reflect"
 
 	cp "github.com/jakecoffman/cp/v2"
 	"github.com/mlange-42/arche/ecs"
@@ -55,6 +57,48 @@ func (w *World) getShape(e Entity) *cp.Shape {
 	return shape
 }
 
+func (w *World) PrintDebug() {
+	msg := "World Debug:\n"
+	msg += fmt.Sprintf("\n%s\n", w.ecs.Stats().String())
+
+	comps := make([]ecs.CompInfo, 0)
+	for _, id := range ecs.ComponentIDs(&w.ecs) {
+		info, ok := ecs.ComponentInfo(&w.ecs, id)
+		if ok {
+			comps = append(comps, info)
+		}
+	}
+
+	dump := w.ecs.DumpEntities()
+	for _, entity := range dump.Entities {
+		if entity.IsZero() {
+			continue
+		}
+
+		msg += fmt.Sprintf("Entity %d:\n", entity.ID())
+
+		for _, comp := range comps {
+			// mapper := generic.NewMap[comp.Type](&w.ecs)
+			pointer := w.ecs.Get(entity, comp.ID)
+
+			if pointer != nil {
+				value := reflect.NewAt(comp.Type, pointer)
+				b, _ := json.Marshal(value.Interface())
+				msg += fmt.Sprintf(
+					"  %s: %s \n",
+					comp.Type.Name(),
+					b,
+				)
+			}
+		}
+
+	}
+
+	// Add Physics debug?
+
+	core.Log.Debug(msg)
+}
+
 func NewWorld() *World {
 	world := &World{
 		ecs:    ecs.NewWorld(),
@@ -66,29 +110,6 @@ func NewWorld() *World {
 	world.ecs.SetListener(newWorldEventProxy(world))
 	world.space.Iterations = 5
 
-	// Testing - Start
-
-	// xMid := 200.0
-	// yMid := 200.0
-	// aEntity := AddEntity(world)
-	// aTrans := &TransformComponent{X: xMid, Y: yMid + 50}
-	// upsertPhysicsEntity(world, aEntity, aTrans, nil, nil)
-	// aCol := &BoxCollider2DComponent{T: 15, B: 15, L: 15, R: 15, Category: 1, CategoryMask: 1}
-	// upsertPhysicsEntity(world, aEntity, aTrans, aCol, nil)
-	// aRb := &RigidBody2DComponent{Type: RB_Dynamic, Mass: 1, Vx: 0, Vy: -50}
-	// upsertPhysicsEntity(world, aEntity, aTrans, aCol, aRb)
-	//
-	// bEntity := AddEntity(world)
-	// bTrans := &TransformComponent{X: xMid, Y: yMid - 100}
-	// upsertPhysicsEntity(world, bEntity, bTrans, nil, nil)
-	// bCol := &BoxCollider2DComponent{T: 15, B: 15, L: 15, R: 15, Category: 1, CategoryMask: 1}
-	// upsertPhysicsEntity(world, bEntity, bTrans, bCol, nil)
-	// bRb := &RigidBody2DComponent{Type: RB_Dynamic, Mass: 1, Vx: 0, Vy: 50}
-	// upsertPhysicsEntity(world, bEntity, bTrans, bCol, bRb)
-	//
-	DebugWorld(world)
-
-	// Testing - End
 	return world
 }
 
@@ -205,7 +226,3 @@ func Query4[C1 any, C2 any, C3 any, C4 any](
 }
 
 var CurrentWorld = NewWorld()
-
-func DebugWorld(world *World) {
-	core.Log.Debug(fmt.Sprintf("World Stats: \n%s", world.ecs.Stats().String()))
-}

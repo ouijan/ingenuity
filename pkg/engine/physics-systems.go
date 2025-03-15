@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"fmt"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 	cp "github.com/jakecoffman/cp/v2"
 	"github.com/mlange-42/arche/ecs"
@@ -28,6 +26,7 @@ func (p *physics2DSystem) Update(w *World, dt float64) {
 	})
 	w.space.EachShape(func(shape *cp.Shape) {
 		updateShape(shape)
+		clearCollisions(shape)
 	})
 	w.space.Step(dt)
 	w.space.EachBody(func(body *cp.Body) {
@@ -38,8 +37,16 @@ func (p *physics2DSystem) Update(w *World, dt float64) {
 	}
 }
 
+func clearCollisions(shape *cp.Shape) {
+	shapedata, ok := shape.UserData.(*physicsData)
+	if !ok {
+		return
+	}
+	shapedata.c.Collisions = []CollisionEvent{}
+}
+
 func updateData(body *cp.Body) {
-	data, ok := body.UserData.(physicsData)
+	data, ok := body.UserData.(*physicsData)
 	if !ok {
 		core.Log.Error("Failed to get physics data from body")
 		return
@@ -56,24 +63,23 @@ func updateData(body *cp.Body) {
 
 func preSolve(arb *cp.Arbiter) bool {
 	a, b := arb.Shapes()
-	aData, ok := a.UserData.(physicsData)
-	if !ok {
-		core.Log.Error("Failed to get physics data from shape")
-		return true
-	}
-	bData, ok := b.UserData.(physicsData)
-	if !ok {
+	aData, aOk := a.UserData.(*physicsData)
+	bData, bOk := b.UserData.(*physicsData)
+	if !aOk || !bOk {
 		core.Log.Error("Failed to get physics data from shape")
 		return true
 	}
 
-	core.Log.Debug(fmt.Sprintf("Collision between %v and %v", aData, bData))
-	// entityA.Collider.AddCollision(core.NewCollisionEvent(entityB.Entity))
-	// if entityA.Rigidbody != nil {
-	// 	entityA.Rigidbody.AddCollision(core.NewCollisionEvent(entityB.Entity))
-	// }
-	return true
-	// return aData.rb != nil && bData.rb != nil
+	aData.c.Collisions = append(aData.c.Collisions, CollisionEvent{
+		TargetEntity: aData.e,
+		OtherEntity:  bData.e,
+	})
+	bData.c.Collisions = append(bData.c.Collisions, CollisionEvent{
+		TargetEntity: bData.e,
+		OtherEntity:  aData.e,
+	})
+
+	return aData.rb != nil && bData.rb != nil
 }
 
 func newPhysicsData(
@@ -81,8 +87,8 @@ func newPhysicsData(
 	t *TransformComponent,
 	c *BoxCollider2DComponent,
 	rb *RigidBody2DComponent,
-) physicsData {
-	return physicsData{
+) *physicsData {
+	return &physicsData{
 		e:  e,
 		t:  t,
 		c:  c,
@@ -119,7 +125,7 @@ func newBody(
 }
 
 func updateBody(body *cp.Body) {
-	data, ok := body.UserData.(physicsData)
+	data, ok := body.UserData.(*physicsData)
 	if !ok {
 		core.Log.Error("Failed to get physics data from body")
 		return
@@ -147,7 +153,7 @@ func newShape(
 }
 
 func updateShape(shape *cp.Shape) {
-	data, ok := shape.UserData.(physicsData)
+	data, ok := shape.UserData.(*physicsData)
 	if !ok {
 		core.Log.Error("Failed to get physics data from shape")
 		return
