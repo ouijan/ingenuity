@@ -16,8 +16,6 @@ import (
 type pongScene struct {
 	systems            []engine.System
 	playerInputContext *engine.InputMappingContext
-	playerController   *playerController
-	enemyController    *enemyController
 }
 
 var soundMap = map[string]audio.Sound{} // TODO: Replace use of global with a resource manager
@@ -41,6 +39,9 @@ func (p *pongScene) OnEnter(w *engine.World) {
 
 	// Add Player
 	player := engine.AddEntity(w)
+	engine.AddComponent(w, player, &playerControllerComponent{
+		OwnerId: "player1",
+	})
 	engine.AddComponent(w, player, &paddleComponent{
 		Speed: 2,
 	})
@@ -58,7 +59,6 @@ func (p *pongScene) OnEnter(w *engine.World) {
 		Vx:   0,
 		Vy:   0,
 	})
-	p.playerController.SetEntity(player)
 
 	// Add Enemy
 	enemy := engine.AddEntity(w)
@@ -80,7 +80,6 @@ func (p *pongScene) OnEnter(w *engine.World) {
 		Vx:   0,
 		Vy:   0,
 	})
-	p.enemyController.SetEntity(enemy)
 
 	// Add Ball
 	ballSpeed := 2.0
@@ -167,7 +166,6 @@ func (p *pongScene) OnEnter(w *engine.World) {
 		LeftScore:  0,
 		RightScore: 0,
 	})
-
 	// w.PrintDebug()
 }
 
@@ -181,19 +179,15 @@ func (p *pongScene) OnExit(w *engine.World) {
 var _ engine.IScene = (*pongScene)(nil)
 
 func NewPongScene() *pongScene {
-	playerController := newPlayerController()
-	enemyController := newEnemyController()
 	return &pongScene{
 		systems: []engine.System{
-			playerController,
-			enemyController,
+			newPlayerController(),
+			newEnemyController(),
 			engine.NewPhysics2DSystem(),
 			newGameplaySystem(),
 			newPongRenderingSystem(),
 		},
 		playerInputContext: newPlayerInputContext(),
-		playerController:   playerController,
-		enemyController:    enemyController,
 	}
 }
 
@@ -212,71 +206,67 @@ func newPlayerInputContext() *engine.InputMappingContext {
 
 // ------------------ Player Controller ------------------
 
-type playerController struct {
-	entity engine.Entity
-}
+type playerController struct{}
 
 // Update implements engine.System.
-func (pc *playerController) Update(world *engine.World, delta float64) {
-	if pc.entity.IsNull() {
-		return
-	}
-	paddle := engine.GetComponent[paddleComponent](world, pc.entity)
-	t := engine.GetComponent[engine.TransformComponent](world, pc.entity)
-	if t == nil {
-		return
-	}
+func (pc *playerController) Update(w *engine.World, delta float64) {
+	engine.Query3(
+		w,
+		func(_ engine.Entity, paddle *paddleComponent, t *engine.TransformComponent, pcComp *playerControllerComponent) {
+			// Resolve player input for this player
+			actions, ok := pc.GetInputFromPlayerId(pcComp.OwnerId)
+			if !ok {
+				return
+			}
 
-	if engine.Input.Get(action_MoveUp) > 0 {
-		t.Y -= paddle.Speed
-	} else if engine.Input.Get(action_MoveDown) > 0 {
-		t.Y += paddle.Speed
-	}
+			if engine.GetAction(actions, action_MoveUp) > 0 {
+				t.Y -= paddle.Speed
+			} else if engine.GetAction(actions, action_MoveDown) > 0 {
+				t.Y += paddle.Speed
+			}
+		},
+	)
 }
 
-func (p *playerController) SetEntity(entity engine.Entity) {
-	p.entity = entity
+func (pc *playerController) GetInputFromPlayerId(playerId string) (engine.InputActionValues, bool) {
+	if playerId != "player1" {
+		return engine.InputActionValues{}, false
+	}
+	return engine.Input.GetAll(), true
 }
 
 var _ engine.System = (*playerController)(nil)
 
 func newPlayerController() *playerController {
-	return &playerController{
-		entity: engine.Entity{},
-	}
+	return &playerController{}
 }
 
 // ------------------ Enemy Controller ------------------
 
-type enemyController struct {
-	entity engine.Entity
-}
+type enemyController struct{}
 
 // Update implements engine.System.
-func (e *enemyController) Update(world *engine.World, delta float64) {
-	if e.entity.IsNull() {
-		return
-	}
-	p := engine.GetComponent[paddleComponent](world, e.entity)
-	t := engine.GetComponent[engine.TransformComponent](world, e.entity)
-	if p == nil || t == nil {
-		return
-	}
-
-	b := e.findBall(world)
+func (ec *enemyController) Update(w *engine.World, delta float64) {
+	b := ec.findBall(w)
 	if b == nil {
 		return
 	}
 
-	if t.Y > b.Y {
-		t.Y -= p.Speed
-	}
-	if t.Y < b.Y {
-		t.Y += p.Speed
-	}
+	engine.Query2(w, func(e engine.Entity, t *engine.TransformComponent, p *paddleComponent) {
+		pc := engine.GetComponent[playerControllerComponent](w, e)
+		if pc != nil {
+			return
+		}
+		if t.Y > b.Y {
+			t.Y -= p.Speed
+		}
+		if t.Y < b.Y {
+			t.Y += p.Speed
+		}
+	})
 }
 
-func (e *enemyController) findBall(w *engine.World) *engine.TransformComponent {
+func (ec *enemyController) findBall(w *engine.World) *engine.TransformComponent {
 	var bt *engine.TransformComponent
 	engine.Query2(w, func(_ engine.Entity, t *engine.TransformComponent, _ *ballComponent) {
 		bt = t
@@ -284,19 +274,16 @@ func (e *enemyController) findBall(w *engine.World) *engine.TransformComponent {
 	return bt
 }
 
-func (e *enemyController) SetEntity(entity engine.Entity) {
-	e.entity = entity
-}
-
 var _ engine.System = (*enemyController)(nil)
 
 func newEnemyController() *enemyController {
-	return &enemyController{
-		entity: engine.Entity{},
-	}
+	return &enemyController{}
 }
 
 // ------------------ Components ------------------
+type playerControllerComponent struct {
+	OwnerId string
+}
 
 type paddleComponent struct {
 	Speed float64

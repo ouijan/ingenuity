@@ -35,7 +35,7 @@ func (sm *SystemManager) Unregister(systems ...System) {
 	}
 }
 
-func (sm *SystemManager) Update(world *World) {
+func (sm *SystemManager) Update(world *World, dt float32) {
 	delta := sm.getDelta()
 	if world == nil {
 		core.Log.Error("World not set")

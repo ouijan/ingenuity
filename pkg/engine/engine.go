@@ -15,15 +15,22 @@ func Run() {
 	defer close()
 
 	attachRaylibLogger(true)
-	attachEventLogger(true)
+	attachEventLogger(false, false)
 	attachTraceLogger(false)
 
 	// TODO: Pull these from config (or pass config in)
 	Window.Open(800, 450, "Ingenuity")
 
 	for !rl.WindowShouldClose() {
+		dt := rl.GetFrameTime()
 		Scene.Update()
-		Systems.Update(CurrentWorld)
+
+		Input.Update()
+		Systems.Update(CurrentWorld, dt)
+
+		renderer.AddCall(5, 0, func() {
+			rl.DrawFPS(10, 10)
+		})
 		renderer.Render(Window.CanvasWidth, Window.CanvasHeight)
 	}
 }
@@ -63,13 +70,16 @@ func attachRaylibLogger(quiet bool) {
 	})
 }
 
-func attachEventLogger(quiet bool) {
+func attachEventLogger(quiet bool, verbose bool) {
 	if quiet {
 		return
 	}
-	core.OnEvent("engine.world.*", func(evt core.Event[WorldEvent]) error {
-		entityId := evt.Data.Evt.Entity.ID()
-		core.Log.Info(fmt.Sprintf("%s: %v", evt.EventId, entityId))
+	core.OnEvent("*", func(evt core.Event[any]) error {
+		msg := fmt.Sprintf("%s", evt.EventId)
+		if verbose {
+			msg += fmt.Sprintf(" -> %#v\n", evt.Data)
+		}
+		core.Log.Info(msg)
 		return nil
 	})
 }

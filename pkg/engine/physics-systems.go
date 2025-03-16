@@ -70,14 +70,13 @@ func preSolve(arb *cp.Arbiter) bool {
 		return true
 	}
 
-	aData.c.Collisions = append(aData.c.Collisions, CollisionEvent{
-		TargetEntity: aData.e,
-		OtherEntity:  bData.e,
-	})
-	bData.c.Collisions = append(bData.c.Collisions, CollisionEvent{
-		TargetEntity: bData.e,
-		OtherEntity:  aData.e,
-	})
+	aEvent := CollisionEvent{TargetEntity: aData.e, OtherEntity: bData.e}
+	aData.c.Collisions = append(aData.c.Collisions, aEvent)
+	core.EmitEvent("engine.physics.collision", aEvent)
+
+	bEvent := CollisionEvent{TargetEntity: bData.e, OtherEntity: aData.e}
+	bData.c.Collisions = append(bData.c.Collisions, bEvent)
+	core.EmitEvent("engine.physics.collision", bEvent)
 
 	return aData.rb != nil && bData.rb != nil
 }

@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/ouijan/ingenuity/pkg/core"
 )
 
 // Input Keys
@@ -161,8 +162,41 @@ func (im *inputManager) Get(action InputAction) float64 {
 	return 0
 }
 
+func (im *inputManager) GetAll() InputActionValues {
+	values := map[InputAction]float64{}
+	for _, context := range im.contexts {
+		for actionId := range context.actions {
+			value := context.Get(actionId)
+			if value != 0 {
+				values[actionId] = value
+			}
+		}
+	}
+	return values
+}
+
+func (im *inputManager) Update() {
+	core.EmitEvent("client.input", InputActionsEvent{
+		Actions: im.GetAll(),
+	})
+}
+
 func newInputManager() *inputManager {
 	return &inputManager{}
 }
 
 var Input = newInputManager()
+
+type InputActionValues = map[InputAction]float64
+
+func GetAction(iav InputActionValues, action InputAction) float64 {
+	value, ok := iav[action]
+	if !ok {
+		return 0
+	}
+	return value
+}
+
+type InputActionsEvent struct {
+	Actions InputActionValues
+}
