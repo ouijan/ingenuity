@@ -18,6 +18,8 @@ github.com/jakecoffman/cp/v2 v2.1.0 h1:s0almZ7zDZs9JY35ciUgCoVKTMmdPkokF1dxHg226
 github.com/jakecoffman/cp/v2 v2.1.0/go.mod h1:Q0hFU7Kk6PMw4dwgFtvBC6O4KTm7ewiLuHrXtHMicyU=
 github.com/lafriks/go-tiled v0.13.0 h1:xZE2rEKCNJPya+g92FCIjzEH4fZLQcZVqvpw174P2MY=
 github.com/lafriks/go-tiled v0.13.0/go.mod h1:FRhv/27R9S9IOmDl7+XrSUjFrV0uCUCu23rTCHRuj5c=
+github.com/matoous/go-nanoid/v2 v2.1.0 h1:P64+dmq21hhWdtvZfEAofnvJULaRR1Yib0+PnU669bE=
+github.com/matoous/go-nanoid/v2 v2.1.0/go.mod h1:KlbGNQ+FhrUNIHUxZdL63t7tl4LaPkZNpUULS8H4uVM=
 github.com/mlange-42/arche v0.15.3 h1:vonT1aCIHmu3nnCopzmhzOP5+J2NswVTexa2UDyek34=
 github.com/mlange-42/arche v0.15.3/go.mod h1:bX5PDzTbf2pEIlwnjRu3IpVqduLsxve4rUblXV0Byj0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

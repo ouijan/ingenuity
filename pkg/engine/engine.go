@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"fmt"
-	"os"
 	"runtime/trace"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -14,9 +12,9 @@ import (
 func Run() {
 	defer close()
 
-	attachRaylibLogger(true)
-	attachEventLogger(false, false)
-	attachTraceLogger(false)
+	core.AttachRaylibLogger(true)
+	core.AttachEventLogger(false, false)
+	core.AttachTraceLogger(false)
 
 	// TODO: Pull these from config (or pass config in)
 	Window.Open(800, 450, "Ingenuity")
@@ -42,52 +40,4 @@ func close() {
 	core.CloseEvents()
 	Window.Close()
 	trace.Stop()
-}
-
-func attachRaylibLogger(quiet bool) {
-	if quiet {
-		rl.SetTraceLogLevel(rl.LogNone)
-		return
-	}
-	rl.SetTraceLogCallback(func(logType int, text string) {
-		switch logType {
-		case int(rl.LogDebug):
-			core.Log.Debug(text)
-			break
-		case int(rl.LogInfo):
-			core.Log.Info(text)
-			break
-		case int(rl.LogWarning):
-			core.Log.Warn(text)
-			break
-		case int(rl.LogError):
-			core.Log.Error(text)
-			break
-		default:
-			core.Log.Info(text)
-			break
-		}
-	})
-}
-
-func attachEventLogger(quiet bool, verbose bool) {
-	if quiet {
-		return
-	}
-	core.OnEvent("*", func(evt core.Event[any]) error {
-		msg := fmt.Sprintf("%s", evt.EventId)
-		if verbose {
-			msg += fmt.Sprintf(" -> %#v\n", evt.Data)
-		}
-		core.Log.Info(msg)
-		return nil
-	})
-}
-
-func attachTraceLogger(quiet bool) {
-	if quiet {
-		return
-	}
-	f, _ := os.Create("trace.out")
-	trace.Start(f)
 }

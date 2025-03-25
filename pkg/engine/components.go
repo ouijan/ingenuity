@@ -49,3 +49,5 @@ type RigidBody2DComponent struct {
 	Mass   float64
 	Vx, Vy float64
 }
+
+// PlayerSpawnComponent

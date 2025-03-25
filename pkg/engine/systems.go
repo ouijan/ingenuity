@@ -36,13 +36,13 @@ func (sm *SystemManager) Unregister(systems ...System) {
 }
 
 func (sm *SystemManager) Update(world *World, dt float32) {
-	delta := sm.getDelta()
+	// delta := sm.getDelta()
 	if world == nil {
 		core.Log.Error("World not set")
 		return
 	}
 	for _, system := range sm.systems {
-		system.Update(world, delta)
+		system.Update(world, float64(dt))
 	}
 }
 

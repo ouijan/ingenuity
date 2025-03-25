@@ -57,6 +57,26 @@ func (w *World) getShape(e Entity) *cp.Shape {
 	return shape
 }
 
+func (w *World) preSolve(arb *cp.Arbiter) bool {
+	a, b := arb.Shapes()
+	aData, aOk := a.UserData.(physicsData)
+	bData, bOk := b.UserData.(physicsData)
+	if !aOk || !bOk {
+		core.Log.Error("Failed to get physics data from shape")
+		return true
+	}
+
+	aEvent := CollisionEvent{TargetEntity: aData.e, OtherEntity: bData.e}
+	aData.c.Collisions = append(aData.c.Collisions, aEvent)
+	core.EmitEvent("engine.physics.collision", aEvent)
+
+	bEvent := CollisionEvent{TargetEntity: bData.e, OtherEntity: aData.e}
+	bData.c.Collisions = append(bData.c.Collisions, bEvent)
+	core.EmitEvent("engine.physics.collision", bEvent)
+
+	return aData.rb != nil && bData.rb != nil
+}
+
 func (w *World) PrintDebug() {
 	msg := "World Debug:\n"
 	msg += fmt.Sprintf("\n%s\n", w.ecs.Stats().String())
@@ -100,17 +120,22 @@ func (w *World) PrintDebug() {
 }
 
 func NewWorld() *World {
-	world := &World{
+	w := &World{
 		ecs:    ecs.NewWorld(),
 		space:  cp.NewSpace(),
 		bodies: map[uint32]*cp.Body{},
 		shapes: map[uint32]*cp.Shape{},
 	}
 
-	world.ecs.SetListener(newWorldEventProxy(world))
-	world.space.Iterations = 5
+	w.ecs.SetListener(newWorldEventProxy(w))
+	w.space.Iterations = 5
 
-	return world
+	handler := w.space.NewWildcardCollisionHandler(cp.WILDCARD_COLLISION_TYPE)
+	handler.PreSolveFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
+		return w.preSolve(arb)
+	}
+
+	return w
 }
 
 // Entity
@@ -135,10 +160,9 @@ func newEntity(entity ecs.Entity) Entity {
 
 // Component
 
-type (
-	Component interface{}
-	Resource  interface{}
-)
+type Component interface{}
+
+type Resource interface{}
 
 type ChildOf struct {
 	ecs.Relation

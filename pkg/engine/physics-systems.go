@@ -61,25 +61,25 @@ func updateData(body *cp.Body) {
 	}
 }
 
-func preSolve(arb *cp.Arbiter) bool {
-	a, b := arb.Shapes()
-	aData, aOk := a.UserData.(physicsData)
-	bData, bOk := b.UserData.(physicsData)
-	if !aOk || !bOk {
-		core.Log.Error("Failed to get physics data from shape")
-		return true
-	}
-
-	aEvent := CollisionEvent{TargetEntity: aData.e, OtherEntity: bData.e}
-	aData.c.Collisions = append(aData.c.Collisions, aEvent)
-	core.EmitEvent("engine.physics.collision", aEvent)
-
-	bEvent := CollisionEvent{TargetEntity: bData.e, OtherEntity: aData.e}
-	bData.c.Collisions = append(bData.c.Collisions, bEvent)
-	core.EmitEvent("engine.physics.collision", bEvent)
-
-	return aData.rb != nil && bData.rb != nil
-}
+// func preSolve(arb *cp.Arbiter) bool {
+// 	a, b := arb.Shapes()
+// 	aData, aOk := a.UserData.(physicsData)
+// 	bData, bOk := b.UserData.(physicsData)
+// 	if !aOk || !bOk {
+// 		core.Log.Error("Failed to get physics data from shape")
+// 		return true
+// 	}
+//
+// 	aEvent := CollisionEvent{TargetEntity: aData.e, OtherEntity: bData.e}
+// 	aData.c.Collisions = append(aData.c.Collisions, aEvent)
+// 	core.EmitEvent("engine.physics.collision", aEvent)
+//
+// 	bEvent := CollisionEvent{TargetEntity: bData.e, OtherEntity: aData.e}
+// 	bData.c.Collisions = append(bData.c.Collisions, bEvent)
+// 	core.EmitEvent("engine.physics.collision", bEvent)
+//
+// 	return aData.rb != nil && bData.rb != nil
+// }
 
 func newPhysicsData(
 	e Entity,
@@ -207,10 +207,10 @@ func NewPhysics2DSystem() *physics2DSystem {
 		DrawDebug: true,
 	}
 
-	handler := CurrentWorld.space.NewWildcardCollisionHandler(cp.WILDCARD_COLLISION_TYPE)
-	handler.PreSolveFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
-		return preSolve(arb)
-	}
+	// handler := CurrentWorld.space.NewWildcardCollisionHandler(cp.WILDCARD_COLLISION_TYPE)
+	// handler.PreSolveFunc = func(arb *cp.Arbiter, space *cp.Space, userData interface{}) bool {
+	// 	return preSolve(arb)
+	// }
 
 	core.OnEvent("engine.world.componentAdded", func(evt core.Event[WorldEvent]) error {
 		return handleComponentEvent(evt)

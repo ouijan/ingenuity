@@ -6,7 +6,9 @@ import (
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/ouijan/ingenuity/pkg/audio"
+	"github.com/ouijan/ingenuity/pkg/core"
 	"github.com/ouijan/ingenuity/pkg/engine"
+	"github.com/ouijan/ingenuity/pkg/net"
 	"github.com/ouijan/ingenuity/pkg/renderer"
 	"github.com/ouijan/ingenuity/sandbox/src/shared"
 )
@@ -26,6 +28,8 @@ func (p *pongScene) Load() {
 	soundMap["bounce"] = audio.LoadSound(path.Join(rootDir, "assets/audio/bounce.wav"))
 	soundMap["lose"] = audio.LoadSound(path.Join(rootDir, "assets/audio/lose.wav"))
 	soundMap["win"] = audio.LoadSound(path.Join(rootDir, "assets/audio/win.wav"))
+
+	// TODO: Establish connection with server world (entity admin)
 }
 
 // OnEnter implements engine.IScene.
@@ -39,10 +43,10 @@ func (p *pongScene) OnEnter(w *engine.World) {
 
 	// Add Player
 	player := engine.AddEntity(w)
-	engine.AddComponent(w, player, &playerControllerComponent{
+	engine.AddComponent(w, player, &PlayerControllerComponent{
 		OwnerId: "player1",
 	})
-	engine.AddComponent(w, player, &paddleComponent{
+	engine.AddComponent(w, player, &PaddleComponent{
 		Speed: 2,
 	})
 	engine.AddComponent(w, player, &engine.TransformComponent{
@@ -62,7 +66,7 @@ func (p *pongScene) OnEnter(w *engine.World) {
 
 	// Add Enemy
 	enemy := engine.AddEntity(w)
-	engine.AddComponent(w, enemy, &paddleComponent{
+	engine.AddComponent(w, enemy, &PaddleComponent{
 		Speed: 2,
 	})
 	engine.AddComponent(w, enemy, &engine.TransformComponent{
@@ -84,7 +88,7 @@ func (p *pongScene) OnEnter(w *engine.World) {
 	// Add Ball
 	ballSpeed := 2.0
 	ball := engine.AddEntity(w)
-	engine.AddComponent(w, ball, &ballComponent{
+	engine.AddComponent(w, ball, &BallComponent{
 		Speed: ballSpeed,
 	})
 	engine.AddComponent(
@@ -141,7 +145,7 @@ func (p *pongScene) OnEnter(w *engine.World) {
 
 	// Add win triggers (left and right)
 	leftWall := engine.AddEntity(w)
-	engine.AddComponent(w, leftWall, &goalComponent{Id: goalLeft})
+	engine.AddComponent(w, leftWall, &GoalComponent{Id: GoalLeft})
 	engine.AddComponent(w, leftWall, &engine.TransformComponent{
 		X: 0, Y: halfHeight,
 	})
@@ -152,7 +156,7 @@ func (p *pongScene) OnEnter(w *engine.World) {
 	})
 
 	rightWall := engine.AddEntity(w)
-	engine.AddComponent(w, rightWall, &goalComponent{Id: goalRight})
+	engine.AddComponent(w, rightWall, &GoalComponent{Id: GoalRight})
 	engine.AddComponent(w, rightWall, &engine.TransformComponent{
 		X: float64(engine.Window.CanvasWidth), Y: halfHeight,
 	})
@@ -162,7 +166,7 @@ func (p *pongScene) OnEnter(w *engine.World) {
 		CategoryMask: 1,
 	})
 
-	engine.AddResource(w, &gameState{
+	engine.AddResource(w, &GameState{
 		LeftScore:  0,
 		RightScore: 0,
 	})
@@ -181,27 +185,27 @@ var _ engine.IScene = (*pongScene)(nil)
 func NewPongScene() *pongScene {
 	return &pongScene{
 		systems: []engine.System{
-			newPlayerController(),
+			NewPlayerController(),
 			newEnemyController(),
 			engine.NewPhysics2DSystem(),
-			newGameplaySystem(),
+			NewGameplaySystem(),
 			newPongRenderingSystem(),
 		},
-		playerInputContext: newPlayerInputContext(),
+		playerInputContext: NewPlayerInputContext(),
 	}
 }
 
 // ------------------ Player Input Context ------------------
 
 const (
-	action_MoveUp engine.InputAction = iota
-	action_MoveDown
+	Action_MoveUp engine.InputAction = iota
+	Action_MoveDown
 )
 
-func newPlayerInputContext() *engine.InputMappingContext {
+func NewPlayerInputContext() *engine.InputMappingContext {
 	return engine.NewInputMappingContext().
-		RegisterAction(action_MoveUp, engine.NewInputTrigger(engine.Triggered, engine.KeyW, false)).
-		RegisterAction(action_MoveDown, engine.NewInputTrigger(engine.Triggered, engine.KeyS, false))
+		RegisterAction(Action_MoveUp, engine.NewInputTrigger(engine.Triggered, engine.KeyW, false)).
+		RegisterAction(Action_MoveDown, engine.NewInputTrigger(engine.Triggered, engine.KeyS, false))
 }
 
 // ------------------ Player Controller ------------------
@@ -212,16 +216,16 @@ type playerController struct{}
 func (pc *playerController) Update(w *engine.World, delta float64) {
 	engine.Query3(
 		w,
-		func(_ engine.Entity, paddle *paddleComponent, t *engine.TransformComponent, pcComp *playerControllerComponent) {
+		func(_ engine.Entity, paddle *PaddleComponent, t *engine.TransformComponent, pcComp *PlayerControllerComponent) {
 			// Resolve player input for this player
 			actions, ok := pc.GetInputFromPlayerId(pcComp.OwnerId)
 			if !ok {
 				return
 			}
 
-			if engine.GetAction(actions, action_MoveUp) > 0 {
+			if engine.GetAction(actions, Action_MoveUp) > 0 {
 				t.Y -= paddle.Speed
-			} else if engine.GetAction(actions, action_MoveDown) > 0 {
+			} else if engine.GetAction(actions, Action_MoveDown) > 0 {
 				t.Y += paddle.Speed
 			}
 		},
@@ -237,7 +241,7 @@ func (pc *playerController) GetInputFromPlayerId(playerId string) (engine.InputA
 
 var _ engine.System = (*playerController)(nil)
 
-func newPlayerController() *playerController {
+func NewPlayerController() *playerController {
 	return &playerController{}
 }
 
@@ -252,8 +256,8 @@ func (ec *enemyController) Update(w *engine.World, delta float64) {
 		return
 	}
 
-	engine.Query2(w, func(e engine.Entity, t *engine.TransformComponent, p *paddleComponent) {
-		pc := engine.GetComponent[playerControllerComponent](w, e)
+	engine.Query2(w, func(e engine.Entity, t *engine.TransformComponent, p *PaddleComponent) {
+		pc := engine.GetComponent[PlayerControllerComponent](w, e)
 		if pc != nil {
 			return
 		}
@@ -268,7 +272,7 @@ func (ec *enemyController) Update(w *engine.World, delta float64) {
 
 func (ec *enemyController) findBall(w *engine.World) *engine.TransformComponent {
 	var bt *engine.TransformComponent
-	engine.Query2(w, func(_ engine.Entity, t *engine.TransformComponent, _ *ballComponent) {
+	engine.Query2(w, func(_ engine.Entity, t *engine.TransformComponent, _ *BallComponent) {
 		bt = t
 	})
 	return bt
@@ -281,32 +285,32 @@ func newEnemyController() *enemyController {
 }
 
 // ------------------ Components ------------------
-type playerControllerComponent struct {
+type PlayerControllerComponent struct {
 	OwnerId string
 }
 
-type paddleComponent struct {
+type PaddleComponent struct {
 	Speed float64
 }
 
-type ballComponent struct {
+type BallComponent struct {
 	Speed float64
 }
 
-type goalId uint8
+type GoalId uint8
 
 const (
-	goalLeft goalId = iota
-	goalRight
+	GoalLeft GoalId = iota
+	GoalRight
 )
 
-type goalComponent struct {
-	Id goalId
+type GoalComponent struct {
+	Id GoalId
 }
 
 // ------------------ Resources ------------------
 
-type gameState struct {
+type GameState struct {
 	LeftScore   int
 	RightScore  int
 	bounceSound audio.Sound
@@ -315,11 +319,11 @@ type gameState struct {
 }
 
 // ------------------ Gameplay System ------------------
-type gameplaySystem struct{}
+type GameplaySystem struct{}
 
 // Update implements engine.System.
-func (g *gameplaySystem) Update(w *engine.World, dt float64) {
-	gs := engine.GetResource[gameState](w)
+func (g *GameplaySystem) Update(w *engine.World, dt float64) {
+	gs := engine.GetResource[GameState](w)
 	if gs == nil {
 		return
 	}
@@ -328,18 +332,18 @@ func (g *gameplaySystem) Update(w *engine.World, dt float64) {
 	loseSound := soundMap["lose"]
 	bounceSound := soundMap["bounce"]
 
-	engine.Query2(w, func(_ engine.Entity, b *ballComponent, col *engine.BoxCollider2DComponent) {
+	engine.Query2(w, func(_ engine.Entity, b *BallComponent, col *engine.BoxCollider2DComponent) {
 		for _, collision := range col.Collisions {
-			goal := engine.GetComponent[goalComponent](w, collision.OtherEntity)
+			goal := engine.GetComponent[GoalComponent](w, collision.OtherEntity)
 			if goal != nil {
-				if goal.Id == goalRight {
+				if goal.Id == GoalRight {
 					engine.Audio.PlaySound(winSound)
 					gs.LeftScore++
 					shared.Log.Info(fmt.Sprintf("Player 1 Scored: %d", gs.LeftScore))
 					g.resetBall(w)
 					return
 				}
-				if goal.Id == goalLeft {
+				if goal.Id == GoalLeft {
 					engine.Audio.PlaySound(loseSound)
 					gs.RightScore++
 					shared.Log.Info(fmt.Sprintf("Player 2 Scored: %d", gs.RightScore))
@@ -352,10 +356,10 @@ func (g *gameplaySystem) Update(w *engine.World, dt float64) {
 	})
 }
 
-func (g *gameplaySystem) resetBall(w *engine.World) {
+func (g *GameplaySystem) resetBall(w *engine.World) {
 	engine.Query3(
 		w,
-		func(_ engine.Entity, t *engine.TransformComponent, rb *engine.RigidBody2DComponent, b *ballComponent) {
+		func(_ engine.Entity, t *engine.TransformComponent, rb *engine.RigidBody2DComponent, b *BallComponent) {
 			t.X = float64(engine.Window.CanvasWidth / 2)
 			t.Y = float64(engine.Window.CanvasHeight / 2)
 			rb.Vx = -100 * b.Speed
@@ -364,10 +368,10 @@ func (g *gameplaySystem) resetBall(w *engine.World) {
 	)
 }
 
-var _ engine.System = (*gameplaySystem)(nil)
+var _ engine.System = (*GameplaySystem)(nil)
 
-func newGameplaySystem() *gameplaySystem {
-	return &gameplaySystem{}
+func NewGameplaySystem() *GameplaySystem {
+	return &GameplaySystem{}
 }
 
 // ------------------ Rendering System ------------------
@@ -377,7 +381,7 @@ type pongRenderingSystem struct{}
 func (g *pongRenderingSystem) Update(w *engine.World, dt float64) {
 	engine.Query3(
 		w,
-		func(_ engine.Entity, trans *engine.TransformComponent, collider *engine.BoxCollider2DComponent, _ *paddleComponent) {
+		func(_ engine.Entity, trans *engine.TransformComponent, collider *engine.BoxCollider2DComponent, _ *PaddleComponent) {
 			renderer.AddCall(0, 0, func() {
 				// TODO: Abstract RayLib calls behind engine/render api package
 				rl.DrawRectangle(
@@ -392,7 +396,7 @@ func (g *pongRenderingSystem) Update(w *engine.World, dt float64) {
 	)
 	engine.Query3(
 		w,
-		func(_ engine.Entity, trans *engine.TransformComponent, collider *engine.BoxCollider2DComponent, _ *ballComponent) {
+		func(_ engine.Entity, trans *engine.TransformComponent, collider *engine.BoxCollider2DComponent, _ *BallComponent) {
 			renderer.AddCall(0, 0, func() {
 				rl.DrawRectangle(
 					int32(trans.X-collider.L),
@@ -405,7 +409,7 @@ func (g *pongRenderingSystem) Update(w *engine.World, dt float64) {
 		},
 	)
 
-	gs := engine.GetResource[gameState](w)
+	gs := engine.GetResource[GameState](w)
 	if gs != nil {
 		hw := int32(engine.Window.CanvasWidth / 2)
 		size := int32(25)
@@ -428,4 +432,79 @@ var _ engine.System = (*pongRenderingSystem)(nil)
 
 func newPongRenderingSystem() *pongRenderingSystem {
 	return &pongRenderingSystem{}
+}
+
+// ------------------ Player Spawn System ------------------
+
+type playerSpawnSystem struct {
+	connectedCh    chan net.Addr
+	disconnectedCh chan net.Addr
+}
+
+// Update implements engine.System.
+func (p *playerSpawnSystem) Update(w *engine.World, dt float64) {
+	err := core.ReadCh(p.connectedCh, func(addr net.Addr) error {
+		return p.handlePlayerConnected(w, addr)
+	})
+	if err != nil {
+		core.Log.Error(err.Error())
+	}
+	err = core.ReadCh(p.disconnectedCh, func(addr net.Addr) error {
+		return p.handlePlayerDisconnected(w, addr)
+	})
+	if err != nil {
+		core.Log.Error(err.Error())
+	}
+}
+
+func (p *playerSpawnSystem) handlePlayerConnected(
+	w *engine.World,
+	addr net.Addr,
+) error {
+	var existing *PlayerControllerComponent
+	var vacant *PlayerControllerComponent
+
+	engine.Query1(w, func(e engine.Entity, pc *PlayerControllerComponent) {
+		if pc.OwnerId == addr.String() {
+			existing = pc
+		}
+		if pc.OwnerId == "" {
+			vacant = pc
+		}
+	})
+
+	if existing != nil {
+		core.Log.Info(fmt.Sprintf("Player already connected: %s", addr.String()))
+		return nil
+	}
+	if vacant != nil {
+		vacant.OwnerId = addr.String()
+		core.Log.Info(fmt.Sprintf("Player connected: %s", addr.String()))
+		return nil
+	}
+	core.Log.Info(fmt.Sprintf("Player limit reached: %s", addr.String()))
+	// core.EmitEvent("engine.network.disconnectUser", addr)
+	return nil
+}
+
+func (p *playerSpawnSystem) handlePlayerDisconnected(w *engine.World, addr net.Addr) error {
+	engine.Query1(w, func(e engine.Entity, pc *PlayerControllerComponent) {
+		if pc.OwnerId == addr.String() {
+			pc.OwnerId = ""
+		}
+	})
+	core.Log.Info(fmt.Sprintf("Player diconnected: %s", addr.String()))
+	return nil
+}
+
+var _ engine.System = (*playerSpawnSystem)(nil)
+
+func NewPlayerSpawnSystem() *playerSpawnSystem {
+	p := &playerSpawnSystem{
+		connectedCh:    make(chan net.Addr, 2),
+		disconnectedCh: make(chan net.Addr, 2),
+	}
+	core.OnEventCh("engine.network.userConnected", p.connectedCh)
+	core.OnEventCh("engine.network.userDisconnected", p.disconnectedCh)
+	return p
 }
