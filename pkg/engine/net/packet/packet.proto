@@ -1,0 +1,45 @@
+syntax = "proto3";
+package ingenuity;
+
+option go_package = "github.com/ouijan/ingenuity/pkg/net/packet;";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+message Packet {
+  uint64 PacketId = 1;
+  google.protobuf.Timestamp Timestamp = 2;
+  oneof packet_data {
+    Acknowledgement Acknowledgement = 3;
+    Message Message = 4;
+    Sync Sync = 5;
+  }
+}
+
+message Acknowledgement {
+  uint64 PacketId = 1;
+}
+
+message Message {
+  string Data = 1;
+}
+
+message Sync {
+  bool IsLocal = 1;
+  uint64 CommandFrameStart = 2;
+  uint64 CommandFrameEnd = 3;
+  repeated FrameDelta Deltas = 4;
+
+  message FrameDelta {
+    uint64 CommandFrame = 1;
+    repeated InstanceDelta Changes = 2;
+  }
+
+  message InstanceDelta {
+    uint64 InstanceId = 1;
+    bool Created = 2;
+    bool Destroyed = 3;
+    google.protobuf.Struct Changes = 4;
+  }
+}
+
