@@ -25,8 +25,8 @@ const (
 
 type Packet struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
-	PacketId  uint64                 `protobuf:"varint,1,opt,name=PacketId,proto3" json:"PacketId,omitempty"`
-	Timestamp *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=Timestamp,proto3" json:"Timestamp,omitempty"`
+	PacketId  *uint64                `protobuf:"varint,1,opt,name=PacketId" json:"PacketId,omitempty"`
+	Timestamp *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=Timestamp" json:"Timestamp,omitempty"`
 	// Types that are valid to be assigned to PacketData:
 	//
 	//	*Packet_Acknowledgement
@@ -68,8 +68,8 @@ func (*Packet) Descriptor() ([]byte, []int) {
 }
 
 func (x *Packet) GetPacketId() uint64 {
-	if x != nil {
-		return x.PacketId
+	if x != nil && x.PacketId != nil {
+		return *x.PacketId
 	}
 	return 0
 }
@@ -120,15 +120,15 @@ type isPacket_PacketData interface {
 }
 
 type Packet_Acknowledgement struct {
-	Acknowledgement *Acknowledgement `protobuf:"bytes,3,opt,name=Acknowledgement,proto3,oneof"`
+	Acknowledgement *Acknowledgement `protobuf:"bytes,3,opt,name=Acknowledgement,oneof"`
 }
 
 type Packet_Message struct {
-	Message *Message `protobuf:"bytes,4,opt,name=Message,proto3,oneof"`
+	Message *Message `protobuf:"bytes,4,opt,name=Message,oneof"`
 }
 
 type Packet_Sync struct {
-	Sync *Sync `protobuf:"bytes,5,opt,name=Sync,proto3,oneof"`
+	Sync *Sync `protobuf:"bytes,5,opt,name=Sync,oneof"`
 }
 
 func (*Packet_Acknowledgement) isPacket_PacketData() {}
@@ -139,7 +139,7 @@ func (*Packet_Sync) isPacket_PacketData() {}
 
 type Acknowledgement struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	PacketId      uint64                 `protobuf:"varint,1,opt,name=PacketId,proto3" json:"PacketId,omitempty"`
+	PacketId      *uint64                `protobuf:"varint,1,opt,name=PacketId" json:"PacketId,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -175,15 +175,15 @@ func (*Acknowledgement) Descriptor() ([]byte, []int) {
 }
 
 func (x *Acknowledgement) GetPacketId() uint64 {
-	if x != nil {
-		return x.PacketId
+	if x != nil && x.PacketId != nil {
+		return *x.PacketId
 	}
 	return 0
 }
 
 type Message struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          string                 `protobuf:"bytes,1,opt,name=Data,proto3" json:"Data,omitempty"`
+	Data          *string                `protobuf:"bytes,1,opt,name=Data" json:"Data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -219,18 +219,19 @@ func (*Message) Descriptor() ([]byte, []int) {
 }
 
 func (x *Message) GetData() string {
-	if x != nil {
-		return x.Data
+	if x != nil && x.Data != nil {
+		return *x.Data
 	}
 	return ""
 }
 
 type Sync struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
-	IsLocal           bool                   `protobuf:"varint,1,opt,name=IsLocal,proto3" json:"IsLocal,omitempty"`
-	CommandFrameStart uint64                 `protobuf:"varint,2,opt,name=CommandFrameStart,proto3" json:"CommandFrameStart,omitempty"`
-	CommandFrameEnd   uint64                 `protobuf:"varint,3,opt,name=CommandFrameEnd,proto3" json:"CommandFrameEnd,omitempty"`
-	Deltas            []*Sync_FrameDelta     `protobuf:"bytes,4,rep,name=Deltas,proto3" json:"Deltas,omitempty"`
+	NetworkEntityId   *uint64                `protobuf:"varint,1,opt,name=NetworkEntityId" json:"NetworkEntityId,omitempty"`
+	IsLocal           *bool                  `protobuf:"varint,2,opt,name=IsLocal" json:"IsLocal,omitempty"`
+	CommandFrameStart *uint64                `protobuf:"varint,3,opt,name=CommandFrameStart" json:"CommandFrameStart,omitempty"`
+	CommandFrameEnd   *uint64                `protobuf:"varint,4,opt,name=CommandFrameEnd" json:"CommandFrameEnd,omitempty"`
+	Deltas            []*Sync_FrameDelta     `protobuf:"bytes,5,rep,name=Deltas" json:"Deltas,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -265,23 +266,30 @@ func (*Sync) Descriptor() ([]byte, []int) {
 	return file_packet_proto_rawDescGZIP(), []int{3}
 }
 
+func (x *Sync) GetNetworkEntityId() uint64 {
+	if x != nil && x.NetworkEntityId != nil {
+		return *x.NetworkEntityId
+	}
+	return 0
+}
+
 func (x *Sync) GetIsLocal() bool {
-	if x != nil {
-		return x.IsLocal
+	if x != nil && x.IsLocal != nil {
+		return *x.IsLocal
 	}
 	return false
 }
 
 func (x *Sync) GetCommandFrameStart() uint64 {
-	if x != nil {
-		return x.CommandFrameStart
+	if x != nil && x.CommandFrameStart != nil {
+		return *x.CommandFrameStart
 	}
 	return 0
 }
 
 func (x *Sync) GetCommandFrameEnd() uint64 {
-	if x != nil {
-		return x.CommandFrameEnd
+	if x != nil && x.CommandFrameEnd != nil {
+		return *x.CommandFrameEnd
 	}
 	return 0
 }
@@ -295,8 +303,8 @@ func (x *Sync) GetDeltas() []*Sync_FrameDelta {
 
 type Sync_FrameDelta struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	CommandFrame  uint64                 `protobuf:"varint,1,opt,name=CommandFrame,proto3" json:"CommandFrame,omitempty"`
-	Changes       []*Sync_InstanceDelta  `protobuf:"bytes,2,rep,name=Changes,proto3" json:"Changes,omitempty"`
+	CommandFrame  *uint64                `protobuf:"varint,1,opt,name=CommandFrame" json:"CommandFrame,omitempty"`
+	Changes       []*Sync_InstanceDelta  `protobuf:"bytes,2,rep,name=Changes" json:"Changes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -332,8 +340,8 @@ func (*Sync_FrameDelta) Descriptor() ([]byte, []int) {
 }
 
 func (x *Sync_FrameDelta) GetCommandFrame() uint64 {
-	if x != nil {
-		return x.CommandFrame
+	if x != nil && x.CommandFrame != nil {
+		return *x.CommandFrame
 	}
 	return 0
 }
@@ -347,10 +355,10 @@ func (x *Sync_FrameDelta) GetChanges() []*Sync_InstanceDelta {
 
 type Sync_InstanceDelta struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	InstanceId    uint64                 `protobuf:"varint,1,opt,name=InstanceId,proto3" json:"InstanceId,omitempty"`
-	Created       bool                   `protobuf:"varint,2,opt,name=Created,proto3" json:"Created,omitempty"`
-	Destroyed     bool                   `protobuf:"varint,3,opt,name=Destroyed,proto3" json:"Destroyed,omitempty"`
-	Changes       *structpb.Struct       `protobuf:"bytes,4,opt,name=Changes,proto3" json:"Changes,omitempty"`
+	InstanceId    *uint64                `protobuf:"varint,1,opt,name=InstanceId" json:"InstanceId,omitempty"`
+	Created       *bool                  `protobuf:"varint,2,opt,name=Created" json:"Created,omitempty"`
+	Destroyed     *bool                  `protobuf:"varint,3,opt,name=Destroyed" json:"Destroyed,omitempty"`
+	Changes       *structpb.Struct       `protobuf:"bytes,4,opt,name=Changes" json:"Changes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -386,22 +394,22 @@ func (*Sync_InstanceDelta) Descriptor() ([]byte, []int) {
 }
 
 func (x *Sync_InstanceDelta) GetInstanceId() uint64 {
-	if x != nil {
-		return x.InstanceId
+	if x != nil && x.InstanceId != nil {
+		return *x.InstanceId
 	}
 	return 0
 }
 
 func (x *Sync_InstanceDelta) GetCreated() bool {
-	if x != nil {
-		return x.Created
+	if x != nil && x.Created != nil {
+		return *x.Created
 	}
 	return false
 }
 
 func (x *Sync_InstanceDelta) GetDestroyed() bool {
-	if x != nil {
-		return x.Destroyed
+	if x != nil && x.Destroyed != nil {
+		return *x.Destroyed
 	}
 	return false
 }
@@ -428,12 +436,13 @@ const file_packet_proto_rawDesc = "" +
 	"\x0fAcknowledgement\x12\x1a\n" +
 	"\bPacketId\x18\x01 \x01(\x04R\bPacketId\"\x1d\n" +
 	"\aMessage\x12\x12\n" +
-	"\x04Data\x18\x01 \x01(\tR\x04Data\"\xb4\x03\n" +
-	"\x04Sync\x12\x18\n" +
-	"\aIsLocal\x18\x01 \x01(\bR\aIsLocal\x12,\n" +
-	"\x11CommandFrameStart\x18\x02 \x01(\x04R\x11CommandFrameStart\x12(\n" +
-	"\x0fCommandFrameEnd\x18\x03 \x01(\x04R\x0fCommandFrameEnd\x122\n" +
-	"\x06Deltas\x18\x04 \x03(\v2\x1a.ingenuity.Sync.FrameDeltaR\x06Deltas\x1ai\n" +
+	"\x04Data\x18\x01 \x01(\tR\x04Data\"\xde\x03\n" +
+	"\x04Sync\x12(\n" +
+	"\x0fNetworkEntityId\x18\x01 \x01(\x04R\x0fNetworkEntityId\x12\x18\n" +
+	"\aIsLocal\x18\x02 \x01(\bR\aIsLocal\x12,\n" +
+	"\x11CommandFrameStart\x18\x03 \x01(\x04R\x11CommandFrameStart\x12(\n" +
+	"\x0fCommandFrameEnd\x18\x04 \x01(\x04R\x0fCommandFrameEnd\x122\n" +
+	"\x06Deltas\x18\x05 \x03(\v2\x1a.ingenuity.Sync.FrameDeltaR\x06Deltas\x1ai\n" +
 	"\n" +
 	"FrameDelta\x12\"\n" +
 	"\fCommandFrame\x18\x01 \x01(\x04R\fCommandFrame\x127\n" +
@@ -444,7 +453,7 @@ const file_packet_proto_rawDesc = "" +
 	"InstanceId\x12\x18\n" +
 	"\aCreated\x18\x02 \x01(\bR\aCreated\x12\x1c\n" +
 	"\tDestroyed\x18\x03 \x01(\bR\tDestroyed\x121\n" +
-	"\aChanges\x18\x04 \x01(\v2\x17.google.protobuf.StructR\aChangesB-Z+github.com/ouijan/ingenuity/pkg/net/packet;b\x06proto3"
+	"\aChanges\x18\x04 \x01(\v2\x17.google.protobuf.StructR\aChangesB-Z+github.com/ouijan/ingenuity/pkg/net/packet;b\beditionsp\xe8\a"
 
 var (
 	file_packet_proto_rawDescOnce sync.Once

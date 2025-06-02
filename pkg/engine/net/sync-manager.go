@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"github.com/ouijan/ingenuity/pkg/engine/net/packet"
+	"github.com/ouijan/ingenuity/pkg/engine/utils"
 )
 
 type SyncManager struct {
@@ -37,21 +38,21 @@ func (sm *SyncManager) Flush(commandFrameExpiry uint64) {
 	lastAck := sm.getOldestAcknowledgedFrame()
 
 	sm.packets = slices.DeleteFunc(sm.packets, func(packet *packet.Sync) bool {
-		return packet.CommandFrameEnd <= lastAck || packet.CommandFrameEnd <= commandFrameExpiry
+		return *packet.CommandFrameEnd <= lastAck || *packet.CommandFrameEnd <= commandFrameExpiry
 	})
 
 	for _, ghost := range sm.ghosts {
 		ghost.outstandingPackets = slices.DeleteFunc(
 			ghost.outstandingPackets,
 			func(i *packet.Sync) bool {
-				return i == nil || i.CommandFrameEnd <= lastAck ||
-					i.CommandFrameEnd <= ghost.commandFrameLastAck
+				return i == nil || *i.CommandFrameEnd <= lastAck ||
+					*i.CommandFrameEnd <= ghost.commandFrameLastAck
 			},
 		)
 	}
 
 	sm.deltas = slices.DeleteFunc(sm.deltas, func(delta *packet.Sync_FrameDelta) bool {
-		return delta.CommandFrame <= lastAck
+		return *delta.CommandFrame <= lastAck
 	})
 }
 
@@ -60,9 +61,9 @@ func (sm *SyncManager) GetFramePacket(
 	delta *packet.Sync_FrameDelta,
 ) *packet.Sync {
 	return &packet.Sync{
-		IsLocal:           false,
-		CommandFrameStart: commandFrame,
-		CommandFrameEnd:   commandFrame,
+		IsLocal:           utils.Pointer(false),
+		CommandFrameStart: &commandFrame,
+		CommandFrameEnd:   &commandFrame,
 		Deltas:            []*packet.Sync_FrameDelta{delta},
 	}
 }

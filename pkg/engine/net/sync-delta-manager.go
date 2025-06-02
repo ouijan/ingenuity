@@ -42,7 +42,10 @@ func (sdm *SyncDeltaManager) GetDelta(
 		if change == nil {
 			continue
 		}
-		if change.Created || change.Destroyed || change.Changes != nil {
+		isCreated := change.Created != nil && *change.Created
+		isDestroyed := change.Destroyed != nil && *change.Destroyed
+
+		if isCreated || isDestroyed || change.Changes != nil {
 			changes = append(changes, change)
 		}
 	}
@@ -57,15 +60,15 @@ func (sdm *SyncDeltaManager) GetDelta(
 		}
 		if comp == nil {
 			change := &packet.Sync_InstanceDelta{
-				InstanceId: instance.instanceId,
-				Destroyed:  true,
+				InstanceId: utils.Pointer(uint64(instance.instanceId)),
+				Destroyed:  utils.Pointer(true),
 			}
 			changes = append(changes, change)
 		}
 	}
 
 	return &packet.Sync_FrameDelta{
-		CommandFrame: commandFrame,
+		CommandFrame: &commandFrame,
 		Changes:      changes,
 	}
 }
@@ -80,13 +83,13 @@ func (sdm *SyncDeltaManager) buildDeltaChange(comp Syncable) *packet.Sync_Instan
 	}
 
 	iDelta := &packet.Sync_InstanceDelta{
-		InstanceId: uint64(comp.GetId()),
+		InstanceId: utils.Pointer(uint64(comp.GetId())),
 		Changes:    changes,
 	}
 
 	instance := sdm.FindInstance(comp.GetId())
 	if instance == nil {
-		iDelta.Created = true
+		iDelta.Created = utils.Pointer(true)
 		return iDelta
 	}
 
@@ -98,29 +101,29 @@ func (sdm *SyncDeltaManager) buildDeltaChange(comp Syncable) *packet.Sync_Instan
 }
 
 func (sdm *SyncDeltaManager) ApplyDelta(delta *packet.Sync_FrameDelta) {
-	if sdm.commandFrameInternal >= delta.CommandFrame {
+	if sdm.commandFrameInternal >= *delta.CommandFrame {
 		return
 	}
 
 	for _, change := range delta.Changes {
-		if change.Destroyed {
+		if change.Destroyed != nil && *change.Destroyed {
 			sdm.instances = slices.DeleteFunc(sdm.instances, func(i *SyncInstance) bool {
-				return i.instanceId == utils.HashId(change.InstanceId)
+				return i.instanceId == utils.HashId(*change.InstanceId)
 			})
 			continue
 		}
 
-		if change.Created {
+		if change.Created != nil && *change.Created {
 			sdm.instances = append(sdm.instances, &SyncInstance{
-				instanceId:   utils.HashId(change.InstanceId),
+				instanceId:   utils.HashId(*change.InstanceId),
 				instanceVars: SyncVarsFromMap(change.Changes.AsMap()),
 			})
 			continue
 		}
 
-		instance := sdm.FindInstance(change.InstanceId)
+		instance := sdm.FindInstance(*change.InstanceId)
 		instance.instanceVars = SyncVarsFromMap(change.Changes.AsMap())
 	}
 
-	sdm.commandFrameInternal = delta.CommandFrame
+	sdm.commandFrameInternal = *delta.CommandFrame
 }

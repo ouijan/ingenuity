@@ -1,4 +1,4 @@
-syntax = "proto3";
+edition = "2023";
 package ingenuity;
 
 option go_package = "github.com/ouijan/ingenuity/pkg/net/packet;";
@@ -25,10 +25,11 @@ message Message {
 }
 
 message Sync {
-  bool IsLocal = 1;
-  uint64 CommandFrameStart = 2;
-  uint64 CommandFrameEnd = 3;
-  repeated FrameDelta Deltas = 4;
+  uint64 NetworkEntityId = 1;
+  bool IsLocal = 2;
+  uint64 CommandFrameStart = 3;
+  uint64 CommandFrameEnd = 4;
+  repeated FrameDelta Deltas = 5;
 
   message FrameDelta {
     uint64 CommandFrame = 1;

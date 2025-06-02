@@ -3,7 +3,6 @@ package server
 import (
 	"time"
 
-	rl "github.com/gen2brain/raylib-go/raylib"
 	ark "github.com/mlange-42/ark/ecs"
 
 	"github.com/ouijan/ingenuity/pkg/engine/config"
@@ -40,7 +39,7 @@ func (a *ServerApp) Init() error {
 	textFactory.NewEntity(
 		&components.Metadata{Name: utils.ServerTickDisplayName},
 		&components.Transform2D{X: 10, Y: 420},
-		&components.Text{Content: "Server Tick Here", FontSize: 20, Colour: rl.LightGray},
+		&components.Text{Content: "Server Tick Here", FontSize: 20},
 		components.NewNetworkedEntity(1),
 	)
 	return nil

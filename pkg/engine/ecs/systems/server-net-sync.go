@@ -2,10 +2,13 @@ package systems
 
 import (
 	ark "github.com/mlange-42/ark/ecs"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/ouijan/ingenuity/pkg/engine/ecs"
 	"github.com/ouijan/ingenuity/pkg/engine/ecs/components"
 	"github.com/ouijan/ingenuity/pkg/engine/net"
+	"github.com/ouijan/ingenuity/pkg/engine/net/packet"
+	"github.com/ouijan/ingenuity/pkg/engine/utils"
 )
 
 const CommandFrameExpiry = 10
@@ -55,7 +58,7 @@ func (s *ServerNetSync) updateEntity(
 	commandFrame uint64,
 ) {
 	meta, trans, text := s.netComps.Get(ent)
-	comps := []interface{}{meta, trans, text}
+	comps := []any{meta, trans, text}
 	syncables := net.GetSyncables(comps)
 
 	delta := ne.SDM.GetDelta(syncables, commandFrame)
@@ -69,10 +72,13 @@ func (s *ServerNetSync) updateEntity(
 	}
 	ne.SM.Flush(commandFrame - CommandFrameExpiry)
 
-	// TODO: Remove this,  it send the same frame packet to all clients
-	packet := ne.SM.GetFramePacket(commandFrame, delta)
-	if len(packet.Deltas) > 0 {
-		data, err := net.SyncMarshal(packet)
+	// TODO: Remove this, it sends the same frame packet to all clients
+	sync := ne.SM.GetFramePacket(commandFrame, delta)
+	sync.NetworkEntityId = utils.Pointer(uint64(ne.Id))
+
+	if len(sync.Deltas) > 0 {
+		p := packet.NewSyncPacket(sync)
+		data, err := proto.Marshal(p)
 		if err == nil {
 			s.server.Get().Broadcast(data)
 		}

@@ -56,11 +56,12 @@ func (pc *PacketBuffer) Write(
 	case *packet.Packet_Acknowledgement:
 		pc.AckCh <- toTypedPacket(ip, d.Acknowledgement)
 		return
+	case *packet.Packet_Sync:
+		pc.SyncCh <- toTypedPacket(ip, d.Sync)
+		return
 	case *packet.Packet_Message:
 		pc.MsgCh <- toTypedPacket(ip, d.Message)
 		return
-	case *packet.Packet_Sync:
-		pc.SyncCh <- toTypedPacket(ip, d.Sync)
 	default:
 		log.Error("Dropping packet unknown type: %T", p.PacketData)
 	}

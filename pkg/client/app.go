@@ -44,12 +44,12 @@ func (a *ClientApp) Init() error {
 	textFactory.NewEntity(
 		&components.Metadata{Name: utils.MessageDisplayName},
 		&components.Transform2D{X: 190, Y: 200},
-		&components.Text{Content: "Message Display", FontSize: 20, Colour: rl.LightGray},
+		&components.Text{Content: "Message Display", FontSize: 20},
 	)
 	textFactory.NewEntity(
 		&components.Metadata{Name: utils.FPSDisplayName},
 		&components.Transform2D{X: 10, Y: 10},
-		&components.Text{Content: "FPS Display", FontSize: 20, Colour: rl.LightGray},
+		&components.Text{Content: "FPS Display", FontSize: 20},
 	)
 
 	netTextFactory := ark.NewMap4[components.Metadata, components.Transform2D, components.Text, components.NetworkedEntity](
@@ -58,7 +58,7 @@ func (a *ClientApp) Init() error {
 	netTextFactory.NewEntity(
 		&components.Metadata{Name: utils.ServerTickDisplayName},
 		&components.Transform2D{X: 10, Y: 420},
-		&components.Text{Content: "Server Tick Here", FontSize: 20, Colour: rl.LightGray},
+		&components.Text{Content: "", FontSize: 20},
 		components.NewNetworkedEntity(1),
 	)
 
@@ -96,7 +96,16 @@ func (a *ClientApp) render() {
 
 	for query.Next() {
 		_, trans, text := query.Get()
-		rl.DrawText(text.Content, int32(trans.X), int32(trans.Y), int32(text.FontSize), text.Colour)
+		// log.Debug("Content: %s, Position: (%f, %f), FontSize: %d",
+		// 	text.Content, trans.X, trans.Y, text.FontSize,
+		// )
+		rl.DrawText(
+			text.Content,
+			int32(trans.X),
+			int32(trans.Y),
+			int32(text.FontSize),
+			rl.LightGray,
+		)
 	}
 
 	rl.EndDrawing()

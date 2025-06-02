@@ -1,7 +1,7 @@
 package components
 
 import (
-	rl "github.com/gen2brain/raylib-go/raylib"
+	"github.com/ouijan/ingenuity/pkg/engine/log"
 	"github.com/ouijan/ingenuity/pkg/engine/net"
 	"github.com/ouijan/ingenuity/pkg/engine/utils"
 )
@@ -15,13 +15,14 @@ const TextComponentId = "comp_Text"
 type Text struct {
 	Content  string
 	FontSize int32
-	Colour   rl.Color
+	// Colour   rl.Color
 }
 
 // ApplyDelta implements net.NetSyncable.
 func (t *Text) ApplyDelta(delta net.SyncVars) {
 	t.Content, _ = delta.GetString("content")
 	t.FontSize, _ = delta.GetInt32("fontSize")
+	log.Debug("Text ApplyDelta: Content='%s', FontSize=%d", t.Content, t.FontSize)
 	// t.Colour, _ = delta.GetColor("colour")
 }
 

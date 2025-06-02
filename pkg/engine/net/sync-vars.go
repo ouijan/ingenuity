@@ -1,5 +1,10 @@
 package net
 
+import (
+	"fmt"
+	"strconv"
+)
+
 type SyncVars struct {
 	data map[string]any
 }
@@ -22,28 +27,133 @@ func (v *SyncVars) Get(key string) (any, bool) {
 }
 
 func (v *SyncVars) GetBool(key string) (bool, bool) {
-	return getTypedVal[bool](v.data, key)
+	val, ok := v.Get(key)
+	if !ok {
+		return false, false
+	}
+	switch val := val.(type) {
+	case bool:
+		return val, true
+	case int:
+		return val > 0, true
+	case uint:
+		return val > 0, true
+	case float32:
+		return val > 0, true
+	case float64:
+		return val > 0, true
+	case string:
+		strVal, err := strconv.ParseBool(val)
+		if err == nil {
+			return strVal, true
+		}
+		return false, false
+	case []byte:
+		strVal, err := strconv.ParseBool(string(val))
+		if err == nil {
+			return strVal, true
+		}
+		return false, false
+	}
+	return false, false
 }
 
 func (v *SyncVars) GetInt32(key string) (int32, bool) {
-	return getTypedVal[int32](v.data, key)
+	val, ok := v.Get(key)
+	if !ok {
+		return 0, false
+	}
+	switch val := val.(type) {
+	case int:
+		return int32(val), true
+	case uint:
+		return int32(val), true
+	case float32:
+		return int32(val), true
+	case float64:
+		return int32(val), true
+	case bool:
+		if val {
+			return 1, true
+		}
+		return 0, true
+
+	case string:
+	case []byte:
+		intVal, err := strconv.ParseInt(string(val), 10, 32)
+		if err == nil {
+			return int32(intVal), true
+		}
+		return 0, false
+	case nil:
+		return 0, true
+	}
+	return 0, false
 }
 
 func (v *SyncVars) GetFloat32(key string) (float32, bool) {
-	return getTypedVal[float32](v.data, key)
+	val, ok := v.Get(key)
+	if !ok {
+		return 0, false
+	}
+	switch val := val.(type) {
+	case int:
+		return float32(val), true
+	case uint:
+		return float32(val), true
+	case float32:
+		return val, true
+	case float64:
+		return float32(val), true
+	case bool:
+		if val {
+			return 1.0, true
+		}
+		return 0.0, true
+
+	case string:
+		fVal, err := strconv.ParseFloat(val, 32)
+		if err == nil {
+			return float32(fVal), true
+		}
+		return 0.0, false
+	case []byte:
+		fVal, err := strconv.ParseFloat(string(val), 32)
+		if err == nil {
+			return float32(fVal), true
+		}
+		return 0.0, false
+	case nil:
+		return 0.0, true
+	}
+	return 0, false
 }
 
 func (v *SyncVars) GetString(key string) (string, bool) {
-	return getTypedVal[string](v.data, key)
-}
-
-func getTypedVal[T any](data map[string]any, key string) (T, bool) {
-	val, ok := data[key]
+	val, ok := v.Get(key)
 	if !ok {
-		return *new(T), false
+		return "", false
 	}
-	casted, ok := val.(T)
-	return casted, ok
+	switch val := val.(type) {
+	case string:
+		return val, true
+	case []byte:
+		return string(val), true
+	case int:
+		return fmt.Sprintf("%d", val), true
+	case uint:
+		return fmt.Sprintf("%d", val), true
+	case float32:
+		return fmt.Sprintf("%f", val), true
+	case float64:
+		return fmt.Sprintf("%f", val), true
+	case bool:
+		if val {
+			return "true", true
+		}
+		return "false", true
+	}
+	return "", false
 }
 
 func (v *SyncVars) IsEq(o SyncVars) bool {

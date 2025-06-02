@@ -3,13 +3,13 @@ package components
 import "github.com/ouijan/ingenuity/pkg/engine/net"
 
 type NetworkedEntity struct {
-	Id      int32
+	Id      uint64
 	OwnerId int32
 	SM      *net.SyncManager
 	SDM     *net.SyncDeltaManager
 }
 
-func NewNetworkedEntity(id int32) *NetworkedEntity {
+func NewNetworkedEntity(id uint64) *NetworkedEntity {
 	return &NetworkedEntity{
 		Id:  id,
 		SM:  net.NewSyncManager(),

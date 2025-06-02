@@ -1,6 +1,7 @@
 package components
 
 import (
+	"github.com/ouijan/ingenuity/pkg/engine/log"
 	"github.com/ouijan/ingenuity/pkg/engine/net"
 	"github.com/ouijan/ingenuity/pkg/engine/utils"
 )
@@ -53,6 +54,7 @@ type Transform2D struct {
 func (t *Transform2D) ApplyDelta(delta net.SyncVars) {
 	t.X, _ = delta.GetFloat32("X")
 	t.Y, _ = delta.GetFloat32("Y")
+	log.Debug("Transform2D ApplyDelta: X=%.2f, Y=%.2f", t.X, t.Y)
 }
 
 // GetDelta implements net.NetSyncable.

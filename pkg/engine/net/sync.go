@@ -19,10 +19,6 @@ func SyncMarshal(packet *packet.Sync) ([]byte, error) {
 	return out, err
 }
 
-func SyncUnmarshal(in []byte, packet *packet.Sync) error {
-	return proto.Unmarshal(in, packet)
-}
-
 // ----- ECS
 
 type Syncable interface {
@@ -44,11 +40,11 @@ func GetSyncables(comps []interface{}) []Syncable {
 // --- CLient side Pseudocode
 func ReplicatePacket(sdm *SyncDeltaManager, packet *packet.Sync) {
 	// TODO: Send acknowledgement
-	if sdm.commandFrameInternal >= packet.CommandFrameEnd {
+	if sdm.commandFrameInternal >= *packet.CommandFrameEnd {
 		return
 	}
 
-	if packet.IsLocal {
+	if *packet.IsLocal {
 		// TODO: Rollback
 	}
 
@@ -58,23 +54,23 @@ func ReplicatePacket(sdm *SyncDeltaManager, packet *packet.Sync) {
 		sdm.ApplyDelta(delta)
 	}
 
-	if packet.IsLocal {
+	if *packet.IsLocal {
 		// TODO: Simulate
 	}
 }
 
 func replicateDelta(sdm *SyncDeltaManager, delta *packet.Sync_FrameDelta) {
-	if sdm.commandFrameInternal >= delta.CommandFrame {
+	if sdm.commandFrameInternal >= *delta.CommandFrame {
 		return
 	}
 
 	for _, change := range delta.Changes {
-		if change.Destroyed {
+		if *change.Destroyed {
 			// TODO: que component for removal
 			continue
 		}
 
-		if change.Created {
+		if *change.Created {
 			// TODO: create a new instance
 			// needs to resolve a create functon
 			continue
