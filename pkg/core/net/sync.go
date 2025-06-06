@@ -3,8 +3,8 @@ package net
 import (
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ouijan/ingenuity/pkg/engine/net/packet"
-	"github.com/ouijan/ingenuity/pkg/engine/utils"
+	"github.com/ouijan/ingenuity/pkg/core/net/packet"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 // Maintained until client disconnects

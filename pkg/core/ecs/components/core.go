@@ -1,9 +1,9 @@
 package components
 
 import (
-	"github.com/ouijan/ingenuity/pkg/engine/log"
-	"github.com/ouijan/ingenuity/pkg/engine/net"
-	"github.com/ouijan/ingenuity/pkg/engine/utils"
+	"github.com/ouijan/ingenuity/pkg/core/log"
+	"github.com/ouijan/ingenuity/pkg/core/net"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 /**

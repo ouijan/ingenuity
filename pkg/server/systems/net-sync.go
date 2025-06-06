@@ -4,11 +4,11 @@ import (
 	ark "github.com/mlange-42/ark/ecs"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ouijan/ingenuity/pkg/engine/ecs"
-	"github.com/ouijan/ingenuity/pkg/engine/ecs/components"
-	"github.com/ouijan/ingenuity/pkg/engine/net"
-	"github.com/ouijan/ingenuity/pkg/engine/net/packet"
-	"github.com/ouijan/ingenuity/pkg/engine/utils"
+	"github.com/ouijan/ingenuity/pkg/core/ecs"
+	"github.com/ouijan/ingenuity/pkg/core/ecs/components"
+	"github.com/ouijan/ingenuity/pkg/core/net"
+	"github.com/ouijan/ingenuity/pkg/core/net/packet"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 const CommandFrameExpiry = 10

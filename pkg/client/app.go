@@ -6,13 +6,13 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	ark "github.com/mlange-42/ark/ecs"
 
-	"github.com/ouijan/ingenuity/pkg/engine/config"
-	"github.com/ouijan/ingenuity/pkg/engine/ecs"
-	"github.com/ouijan/ingenuity/pkg/engine/ecs/components"
-	"github.com/ouijan/ingenuity/pkg/engine/ecs/systems"
-	"github.com/ouijan/ingenuity/pkg/engine/log"
-	"github.com/ouijan/ingenuity/pkg/engine/net"
-	"github.com/ouijan/ingenuity/pkg/engine/utils"
+	"github.com/ouijan/ingenuity/pkg/core/config"
+	"github.com/ouijan/ingenuity/pkg/core/ecs"
+	"github.com/ouijan/ingenuity/pkg/core/ecs/components"
+	"github.com/ouijan/ingenuity/pkg/core/ecs/systems"
+	"github.com/ouijan/ingenuity/pkg/core/log"
+	"github.com/ouijan/ingenuity/pkg/core/net"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 type ClientApp struct {

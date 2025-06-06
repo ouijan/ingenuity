@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/ouijan/ingenuity/pkg/client"
-	"github.com/ouijan/ingenuity/pkg/engine/config"
+	"github.com/ouijan/ingenuity/pkg/core/config"
 )
 
 func main() {

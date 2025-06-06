@@ -1,6 +1,6 @@
 package components
 
-import "github.com/ouijan/ingenuity/pkg/engine/net"
+import "github.com/ouijan/ingenuity/pkg/core/net"
 
 type NetworkedEntity struct {
 	Id      uint64

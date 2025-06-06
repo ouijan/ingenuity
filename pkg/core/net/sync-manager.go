@@ -3,8 +3,8 @@ package net
 import (
 	"slices"
 
-	"github.com/ouijan/ingenuity/pkg/engine/net/packet"
-	"github.com/ouijan/ingenuity/pkg/engine/utils"
+	"github.com/ouijan/ingenuity/pkg/core/net/packet"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 type SyncManager struct {

@@ -1,7 +1,7 @@
 package net
 
 import (
-	"github.com/ouijan/ingenuity/pkg/engine/utils"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 // -----

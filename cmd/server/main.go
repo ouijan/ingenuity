@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ouijan/ingenuity/pkg/engine/config"
+	"github.com/ouijan/ingenuity/pkg/core/config"
 	"github.com/ouijan/ingenuity/pkg/server"
 )
 

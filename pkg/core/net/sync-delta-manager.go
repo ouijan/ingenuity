@@ -5,9 +5,9 @@ import (
 
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/ouijan/ingenuity/pkg/engine/log"
-	"github.com/ouijan/ingenuity/pkg/engine/net/packet"
-	"github.com/ouijan/ingenuity/pkg/engine/utils"
+	"github.com/ouijan/ingenuity/pkg/core/log"
+	"github.com/ouijan/ingenuity/pkg/core/net/packet"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 type SyncDeltaManager struct {

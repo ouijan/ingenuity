@@ -5,8 +5,8 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/ouijan/ingenuity/pkg/engine/log"
-	"github.com/ouijan/ingenuity/pkg/engine/net/packet"
+	"github.com/ouijan/ingenuity/pkg/core/log"
+	"github.com/ouijan/ingenuity/pkg/core/net/packet"
 )
 
 type InboundPacket[T any] struct {
