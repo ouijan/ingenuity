@@ -4,10 +4,7 @@ go 1.24.0
 
 toolchain go1.24.3
 
-require (
-	github.com/urfave/cli/v3 v3.3.2
-	gopkg.in/ini.v1 v1.67.0
-)
+require gopkg.in/ini.v1 v1.67.0
 
 require (
 	github.com/ebitengine/purego v0.8.2 // indirect
