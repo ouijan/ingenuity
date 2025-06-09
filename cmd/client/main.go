@@ -10,7 +10,6 @@ func main() {
 	client := client.NewClientApp(cfg)
 	defer client.Close()
 
-	client.Init()
 	if err := client.Run(); err != nil {
 		panic(err)
 	}

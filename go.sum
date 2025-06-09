@@ -6,6 +6,8 @@ github.com/gen2brain/raylib-go/raylib v0.0.0-20250504022611-e6017e5fc409 h1:xo23
 github.com/gen2brain/raylib-go/raylib v0.0.0-20250504022611-e6017e5fc409/go.mod h1:BaY76bZk7nw1/kVOSQObPY1v1iwVE1KHAGMfvI6oK1Q=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/lafriks/go-tiled v0.13.0 h1:xZE2rEKCNJPya+g92FCIjzEH4fZLQcZVqvpw174P2MY=
+github.com/lafriks/go-tiled v0.13.0/go.mod h1:FRhv/27R9S9IOmDl7+XrSUjFrV0uCUCu23rTCHRuj5c=
 github.com/mlange-42/ark v0.4.2 h1:C6TvQZ9QbY39XPUK6Zk3YNQYHyvQD8KglwodnGzTh5Q=
 github.com/mlange-42/ark v0.4.2/go.mod h1:47KXHr5HLftLn4iyL8w04iv7KJUNUoDymEIotD41f3o=
 github.com/pion/dtls/v3 v3.0.6 h1:7Hkd8WhAJNbRgq9RgdNh1aaWlZlGpYTzdqjy9x9sK2E=

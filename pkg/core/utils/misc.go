@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 )
 
 // Assert is a simple assertion function that panics if the condition is false.
@@ -50,4 +51,20 @@ func ChanSelect[T any](ch chan T) (T, bool) {
 // to store v and returns a pointer to it.
 func Pointer[Value any](v Value) *Value {
 	return &v
+}
+
+func IterateIntKeyedMap[T any](obj map[int]T) func(yield func(int, T) bool) {
+	return func(yield func(int, T) bool) {
+		keys := make([]int, 0, len(obj))
+		for k := range obj {
+			keys = append(keys, k)
+		}
+		sort.Ints(keys)
+		for i, k := range keys {
+			v := obj[k]
+			if !yield(i, v) {
+				return
+			}
+		}
+	}
 }

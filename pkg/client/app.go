@@ -4,28 +4,56 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	ark "github.com/mlange-42/ark/ecs"
 
+	"github.com/ouijan/ingenuity/pkg/client/renderer"
+	"github.com/ouijan/ingenuity/pkg/client/resources"
 	"github.com/ouijan/ingenuity/pkg/client/systems"
 	"github.com/ouijan/ingenuity/pkg/core/config"
 	"github.com/ouijan/ingenuity/pkg/core/ecs"
 	"github.com/ouijan/ingenuity/pkg/core/ecs/components"
-	"github.com/ouijan/ingenuity/pkg/core/log"
 	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 type ClientApp struct {
-	exit         bool
-	window       *Window
-	config       *config.Config
-	ecs          *ecs.EntityAdmin
-	textEntities *ark.Filter3[components.Metadata, components.Transform2D, components.Text]
+	exit   bool
+	window *Window
+	config *config.Config
+	ecs    *ecs.EntityAdmin
+	camera rl.Camera2D
 }
 
-func (a *ClientApp) Init() error {
+func (a *ClientApp) Run() error {
+	screenW := 1600 // 800
+	screenH := 900  // 450
+	a.window.Open(screenW, screenH, "Ingenuity Client")
+	defer a.window.Close()
+
+	a.SetupWorld()
+	a.camera.Offset = rl.Vector2{
+		X: float32(screenW) / 2,
+		Y: float32(screenH) / 2,
+	}
+	a.camera.Zoom = .25
+
+	a.ecs.Activate()
+	for !a.exit && !rl.WindowShouldClose() {
+		a.ecs.Update(rl.GetFrameTime())
+		renderer.Render(a.camera)
+		renderer.Clear()
+	}
+
+	return nil
+}
+
+func (a *ClientApp) SetupWorld() error {
 	ark.AddResource(&a.ecs.World, a)
 	ark.AddResource(&a.ecs.World, a.config)
 	ark.AddResource(&a.ecs.World, a.window)
+	ark.AddResource(&a.ecs.World, &a.camera)
+	ark.AddResource(&a.ecs.World, &resources.UserInputStore{})
 
 	ecs.AddSystem(a.ecs, &systems.TinkerSystem{})
+	ecs.AddSystem(a.ecs, &systems.InputSystem{})
+	ecs.AddSystem(a.ecs, &systems.InputHandlerSystem{})
 
 	textFactory := ark.NewMap3[components.Metadata, components.Transform2D, components.Text](
 		&a.ecs.World,
@@ -50,51 +78,7 @@ func (a *ClientApp) Init() error {
 		&components.Text{Content: "", FontSize: 20},
 		components.NewNetworkedEntity(1),
 	)
-
 	return nil
-}
-
-func (a *ClientApp) Run() error {
-	log.Info("Starting client")
-
-	a.window.Open(800, 450, "Ingenuity Client")
-	defer a.window.Close()
-
-	a.ecs.Activate()
-	for !a.exit && !rl.WindowShouldClose() {
-		a.update()
-		a.render()
-	}
-
-	return nil
-}
-
-func (a *ClientApp) update() {
-	dt := rl.GetFrameTime()
-	a.ecs.Update(dt)
-}
-
-func (a *ClientApp) render() {
-	rl.BeginDrawing()
-	rl.ClearBackground(rl.RayWhite)
-
-	query := a.textEntities.Query()
-
-	for query.Next() {
-		_, trans, text := query.Get()
-		// log.Debug("Content: %s, Position: (%f, %f), FontSize: %d",
-		// 	text.Content, trans.X, trans.Y, text.FontSize,
-		// )
-		rl.DrawText(
-			text.Content,
-			int32(trans.X),
-			int32(trans.Y),
-			int32(text.FontSize),
-			rl.LightGray,
-		)
-	}
-
-	rl.EndDrawing()
 }
 
 func (a *ClientApp) Close() {
@@ -102,15 +86,13 @@ func (a *ClientApp) Close() {
 }
 
 func NewClientApp(cfg *config.Config) *ClientApp {
-	ecs := ecs.NewEntityAdmin()
-	textEntities := ark.NewFilter3[components.Metadata, components.Transform2D, components.Text](
-		&ecs.World,
-	)
 	return &ClientApp{
-		exit:         false,
-		config:       cfg,
-		window:       NewWindow(),
-		ecs:          ecs,
-		textEntities: textEntities,
+		exit:   false,
+		config: cfg,
+		window: NewWindow(),
+		ecs:    ecs.NewEntityAdmin(),
+		camera: rl.Camera2D{
+			Zoom: 1.0,
+		},
 	}
 }

@@ -17,6 +17,7 @@ require (
 
 require (
 	github.com/gen2brain/raylib-go/raylib v0.0.0-20250504022611-e6017e5fc409
+	github.com/lafriks/go-tiled v0.13.0
 	github.com/mlange-42/ark v0.4.2
 	github.com/pion/dtls/v3 v3.0.6
 	google.golang.org/protobuf v1.36.6
