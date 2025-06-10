@@ -12,6 +12,8 @@ type renderStack struct {
 	layers map[int]renderLayerStack
 }
 
+// TODO: Layer should denote if it is a world layer or a UI layer.
+
 func newRenderStack() *renderStack {
 	return &renderStack{
 		layers: make(map[int]renderLayerStack),

@@ -13,6 +13,7 @@ import (
 	"github.com/ouijan/ingenuity/pkg/core/ecs"
 	"github.com/ouijan/ingenuity/pkg/core/ecs/components"
 	"github.com/ouijan/ingenuity/pkg/core/log"
+	"github.com/ouijan/ingenuity/pkg/core/math"
 	"github.com/ouijan/ingenuity/pkg/core/resources"
 	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
@@ -173,7 +174,7 @@ func DrawLayer(tilemap *tiled.Map, layer *tiled.Layer, layerIndex int) {
 
 		xTile := tileIndex % tilemap.Width
 		yTile := tileIndex / tilemap.Width
-		isoX, isoY := utils.ToIsoCoordinates(xTile, yTile, tilemap.TileWidth, tilemap.TileHeight)
+		isoX, isoY := math.IsoGridToPixel(xTile, yTile, tilemap.TileWidth, tilemap.TileHeight)
 		originX, originY := toTileOriginCoordinates(isoX, isoY, tilemap.TileWidth, tilemap.TileHeight)
 		x, y := applySpriteOffset(originX, originY, tilemap.TileHeight, int(texture.Height))
 

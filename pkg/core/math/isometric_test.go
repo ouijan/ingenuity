@@ -1,9 +1,9 @@
-package utils_test
+package math_test
 
 import (
 	"testing"
 
-	"github.com/ouijan/ingenuity/pkg/core/utils"
+	"github.com/ouijan/ingenuity/pkg/core/math"
 )
 
 func TestToIsoCoordinates(t *testing.T) {
@@ -21,7 +21,7 @@ func TestToIsoCoordinates(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		gotX, gotY := utils.ToIsoCoordinates(tt.x, tt.y, tt.w, tt.h)
+		gotX, gotY := math.IsoGridToPixel(tt.x, tt.y, tt.w, tt.h)
 		if gotX != tt.wantX || gotY != tt.wantY {
 			t.Errorf("ToIsoCoordinates(%d, %d, %d, %d) = (%d, %d), want (%d, %d)",
 				tt.x, tt.y, tt.w, tt.h, gotX, gotY, tt.wantX, tt.wantY)

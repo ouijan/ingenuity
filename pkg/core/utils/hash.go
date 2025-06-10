@@ -9,3 +9,5 @@ func Hash(s string) HashId {
 	h.Write([]byte(s))
 	return h.Sum64()
 }
+
+type HashMap[T any] = map[HashId]T

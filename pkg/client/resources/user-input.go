@@ -1,11 +1,11 @@
 package resources
 
+import (
+	"github.com/ouijan/ingenuity/pkg/client/input"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
+)
+
 type UserInputStore struct {
-	Up      bool
-	Down    bool
-	Left    bool
-	Right   bool
-	ZoomIn  bool
-	ZoomOut bool
-	Boost   bool
+	Values  utils.InputActionValues
+	Manager input.InputManager
 }

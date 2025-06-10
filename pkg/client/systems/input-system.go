@@ -3,7 +3,6 @@ package systems
 import (
 	"errors"
 
-	rl "github.com/gen2brain/raylib-go/raylib"
 	ark "github.com/mlange-42/ark/ecs"
 
 	"github.com/ouijan/ingenuity/pkg/client/resources"
@@ -33,14 +32,7 @@ func (s *InputSystem) Update(dt float32) error {
 		return errors.New("UserInputStore resource not found")
 	}
 
-	store.Up = rl.IsKeyDown(rl.KeyW) || rl.IsKeyDown(rl.KeyUp)
-	store.Down = rl.IsKeyDown(rl.KeyS) || rl.IsKeyDown(rl.KeyDown)
-	store.Left = rl.IsKeyDown(rl.KeyA) || rl.IsKeyDown(rl.KeyLeft)
-	store.Right = rl.IsKeyDown(rl.KeyD) || rl.IsKeyDown(rl.KeyRight)
-	store.ZoomIn = rl.IsKeyDown(rl.KeyI) || rl.IsKeyDown(rl.KeyEqual)
-	store.ZoomOut = rl.IsKeyDown(rl.KeyO) || rl.IsKeyDown(rl.KeyMinus)
-	store.Boost = rl.IsKeyDown(rl.KeyLeftShift) || rl.IsKeyDown(rl.KeyRightShift)
-
+	store.Values = store.Manager.GetAll()
 	return nil
 }
 

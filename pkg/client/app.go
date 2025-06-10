@@ -4,6 +4,7 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 	ark "github.com/mlange-42/ark/ecs"
 
+	"github.com/ouijan/ingenuity/pkg/client/input"
 	"github.com/ouijan/ingenuity/pkg/client/renderer"
 	"github.com/ouijan/ingenuity/pkg/client/resources"
 	"github.com/ouijan/ingenuity/pkg/client/systems"
@@ -45,11 +46,13 @@ func (a *ClientApp) Run() error {
 }
 
 func (a *ClientApp) SetupWorld() error {
+	im := &resources.UserInputStore{}
+
 	ark.AddResource(&a.ecs.World, a)
 	ark.AddResource(&a.ecs.World, a.config)
 	ark.AddResource(&a.ecs.World, a.window)
 	ark.AddResource(&a.ecs.World, &a.camera)
-	ark.AddResource(&a.ecs.World, &resources.UserInputStore{})
+	ark.AddResource(&a.ecs.World, im)
 
 	ecs.AddSystem(a.ecs, &systems.TinkerSystem{})
 	ecs.AddSystem(a.ecs, &systems.InputSystem{})
@@ -78,6 +81,22 @@ func (a *ClientApp) SetupWorld() error {
 		&components.Text{Content: "", FontSize: 20},
 		components.NewNetworkedEntity(1),
 	)
+
+	// Input Binding
+	ic := input.NewInputContext()
+	ic.RegisterAction(utils.INPUT_UP, input.KeyBinding(rl.KeyUp, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_UP, input.KeyBinding(rl.KeyW, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_DOWN, input.KeyBinding(rl.KeyDown, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_DOWN, input.KeyBinding(rl.KeyS, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_LEFT, input.KeyBinding(rl.KeyLeft, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_LEFT, input.KeyBinding(rl.KeyA, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_RIGHT, input.KeyBinding(rl.KeyRight, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_RIGHT, input.KeyBinding(rl.KeyD, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_ZOOM_IN, input.KeyBinding(rl.KeyEqual, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_ZOOM_OUT, input.KeyBinding(rl.KeyMinus, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_BOOST, input.KeyBinding(rl.KeyLeftShift, input.Triggered, false))
+	ic.RegisterAction(utils.INPUT_BOOST, input.KeyBinding(rl.KeyRightShift, input.Triggered, false))
+	im.Manager.Register(ic)
 	return nil
 }
 

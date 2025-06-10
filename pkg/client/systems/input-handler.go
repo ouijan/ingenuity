@@ -6,6 +6,7 @@ import (
 
 	"github.com/ouijan/ingenuity/pkg/client/resources"
 	"github.com/ouijan/ingenuity/pkg/core/ecs"
+	"github.com/ouijan/ingenuity/pkg/core/utils"
 )
 
 type InputHandlerSystem struct {
@@ -36,27 +37,27 @@ func (s *InputHandlerSystem) Update(dt float32) error {
 		return nil
 	}
 
-	if store.Boost {
+	if utils.GetAction(store.Values, utils.INPUT_BOOST) > 0 {
 		moveSpeed *= 2
 		zoomSpeed *= 2
 	}
 
-	if store.ZoomIn {
+	if utils.GetAction(store.Values, utils.INPUT_ZOOM_IN) > 0 {
 		camera.Zoom += zoomSpeed * dt
-	} else if store.ZoomOut {
+	} else if utils.GetAction(store.Values, utils.INPUT_ZOOM_OUT) > 0 {
 		camera.Zoom -= zoomSpeed * dt
 	}
 
 	moveSpeed /= camera.Zoom
 
-	if store.Up {
+	if utils.GetAction(store.Values, utils.INPUT_UP) > 0 {
 		camera.Target.Y -= moveSpeed * dt
-	} else if store.Down {
+	} else if utils.GetAction(store.Values, utils.INPUT_DOWN) > 0 {
 		camera.Target.Y += moveSpeed * dt
 	}
-	if store.Left {
+	if utils.GetAction(store.Values, utils.INPUT_LEFT) > 0 {
 		camera.Target.X -= moveSpeed * dt
-	} else if store.Right {
+	} else if utils.GetAction(store.Values, utils.INPUT_RIGHT) > 0 {
 		camera.Target.X += moveSpeed * dt
 	}
 
